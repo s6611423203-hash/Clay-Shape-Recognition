@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clay Shape Recognition — AI ทายงานปั้นดินน้ำมัน</title>
+  <meta name="description" content="สแกนงานปั้นดินน้ำมันด้วยกล้องหรืออัปโหลดรูป แล้วให้ AI (Teachable Machine) ทายว่าเป็นรูปอะไร" />
+  <!-- TensorFlow.js & Teachable Machine -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+  <style>
+    :root{--bg:#f6f9ff;--fg:#0f172a;--muted:#475569;--card:#ffffff;--accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--err:#ef4444;--ring:#e2e8f0}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--fg)}
+    header{max-width:960px;margin:24px auto 0;padding:0 16px}
+    .title{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#60a5fa,#34d399);display:grid;place-items:center;color:white;font-weight:800}
+    h1{font-size:clamp(20px,4vw,28px);margin:0}
+    p.sub{color:var(--muted);margin:6px 0 0}
+    main{max-width:960px;margin:20px auto 56px;padding:0 16px}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px 16px 20px;box-shadow:0 6px 20px rgba(2,6,23,.06)}
+    .row{display:grid;gap:16px}
+    @media(min-width:900px){.row{grid-template-columns:1.2fr .8fr}}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px}
+    button,input[type=file]{font:inherit}
+    .btn{appearance:none;border:1px solid var(--ring);background:#fff;color:var(--fg);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s;box-shadow:0 2px 8px rgba(2,6,23,.04)}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .btn.good{background:var(--ok);border-color:var(--ok);color:#fff}
+    .btn.warn{background:var(--warn);border-color:var(--warn);color:#fff}
+    .btn.ghost{background:#fff}
+    .hidden{display:none !important}
+    .previewBox{background:#fff;border:1px dashed var(--ring);border-radius:14px;min-height:320px;display:grid;place-items:center;overflow:hidden}
+    video, img{max-width:100%;height:auto;display:block}
+    .status{font-size:14px;color:var(--muted)}
+    .result{background:#f8fafc;border:1px solid var(--ring);border-radius:12px;padding:12px}
+    .pred{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0}
+    .bar{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden;flex:1;margin:0 10px}
+    .bar > span{display:block;height:100%;background:var(--accent);width:0%}
+    .foot{max-width:960px;margin:10px auto 32px;padding:0 16px;color:var(--muted);font-size:13px}
+    .note{padding:10px 12px;border-left:4px solid var(--accent);background:#eff6ff;border-radius:8px}
+    .danger{border-left-color:var(--err);background:#fff1f2}
+    .ok{border-left-color:var(--ok);background:#ecfdf5}
+    .grid-2{display:grid;gap:12px}
+    @media(min-width:700px){.grid-2{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <div class="logo">CV</div>
+      <div>
+        <h1>ClayVision — AI ทายงานปั้นดินน้ำมัน</h1>
+        <p class="sub">อัปโหลดภาพหรือเปิดกล้อง แล้วให้โมเดล <b>Teachable Machine</b> ทำนายว่าเป็นรูปอะไร</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="card row">
+      <section>
+        <div class="controls">
+          <button id="btnUpload" class="btn">📷 อัปโหลดรูป</button>
+          <input id="fileInput" type="file" accept="image/*" capture="environment" class="hidden" />
+          <button id="btnStartCam" class="btn primary">🎥 เปิดกล้อง</button>
+          <button id="btnSnap" class="btn good hidden">📸 ถ่ายและทำนาย</button>
+          <button id="btnStopCam" class="btn warn hidden">⏹️ ปิดกล้อง</button>
+        </div>
+
+        <div id="stage" class="previewBox">
+          <!-- แสดงผลลัพธ์: video หรือ img อย่างใดอย่างหนึ่ง -->
+          <video id="video" class="hidden" playsinline autoplay muted></video>
+          <img id="preview" alt="ตัวอย่างภาพ" class="hidden" />
+          <canvas id="canvas" class="hidden"></canvas>
+          <div id="placeholder" class="status">ยังไม่มีภาพ — เลือกอัปโหลดหรือเปิดกล้องเพื่อเริ่มต้น</div>
+        </div>
+        <div style="margin-top:8px" class="status" id="camStatus"></div>
+      </section>
+
+      <aside>
+        <div class="grid-2">
+          <div class="note" id="modelStatus">สถานะโมเดล: <b>กำลังโหลด…</b> (โปรดวางโมเดลไว้ในโฟลเดอร์ <code>/model</code>)</div>
+          <div class="note ok">ทำงานบน HTTPS เท่านั้น — GitHub Pages เป็น HTTPS พร้อมใช้งาน</div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="result">
+          <div class="status">ผลการทำนาย (Top-1 + รายการทั้งหมด)</div>
+          <h3 id="top1" style="margin:8px 0 4px">—</h3>
+          <div id="predList"></div>
+        </div>
+        <div style="height:12px"></div>
+        <details>
+          <summary>โครงสร้างไฟล์ที่แนะนำ</summary>
+<pre style="font-size:12px;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:8px;overflow:auto">repo-root/
+ ├─ index.html  ← ไฟล์หน้านี้
+ └─ model/      ← โฟลเดอร์โมเดลจาก Teachable Machine (TensorFlow.js)
+     ├─ model.json
+     ├─ metadata.json
+     └─ weights.bin</pre>
+        </details>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="note">💡 เคล็ดลับความแม่นยำ: จัดไฟให้สม่ำเสมอ ฉากหลังเรียบ และถ่ายหลายมุมต่อหนึ่งคลาส</div>
+  </footer>
+
+  <script>
+    // =====================
+    // 1) โหลดโมเดล TM
+    // =====================
+    const MODEL_URL = "./model/"; // วางโฟลเดอร์โมเดลจาก Teachable Machine ไว้ที่ /model
+    let model, maxPredictions;
+
+    const modelStatus = document.getElementById('modelStatus');
+
+    async function loadModel(){
+      try{
+        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+        maxPredictions = model.getTotalClasses();
+        modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> — พบคลาสทั้งหมด: ' + maxPredictions;
+      }catch(err){
+        console.error(err);
+        modelStatus.classList.add('danger');
+        modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b> — โปรดตรวจสอบว่าโฟลเดอร์ <code>/model</code> มี <code>model.json</code>, <code>metadata.json</code>, <code>weights.bin</code>';
+      }
+    }
+    loadModel();
+
+    // =====================
+    // 2) ตัวแปร DOM หลัก
+    // =====================
+    const fileInput = document.getElementById('fileInput');
+    const btnUpload = document.getElementById('btnUpload');
+    const btnStartCam = document.getElementById('btnStartCam');
+    const btnStopCam = document.getElementById('btnStopCam');
+    const btnSnap = document.getElementById('btnSnap');
+
+    const video = document.getElementById('video');
+    const preview = document.getElementById('preview');
+    const placeholder = document.getElementById('placeholder');
+    const canvas = document.getElementById('canvas');
+    const camStatus = document.getElementById('camStatus');
+
+    const top1 = document.getElementById('top1');
+    const predList = document.getElementById('predList');
+
+    // =====================
+    // 3) อัปโหลดรูปภาพ
+    // =====================
+    btnUpload.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      stopCamera();
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      await showImage();
+      await predict(preview);
+    });
+
+    // =====================
+    // 4) กล้อง (getUserMedia)
+    // =====================
+    let stream;
+    async function startCamera(){
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        preview.classList.add('hidden');
+        placeholder.classList.add('hidden');
+        btnSnap.classList.remove('hidden');
+        btnStopCam.classList.remove('hidden');
+        camStatus.textContent = 'กล้องกำลังทำงาน (แตะ “ถ่ายและทำนาย”)';
+      }catch(err){
+        console.error(err);
+        camStatus.textContent = 'ไม่สามารถเปิดกล้องได้: ' + err.message;
+      }
+    }
+
+    function stopCamera(){
+      if(stream){
+        stream.getTracks().forEach(t=> t.stop());
+        stream = null;
+      }
+      video.classList.add('hidden');
+      btnSnap.classList.add('hidden');
+      btnStopCam.classList.add('hidden');
+      camStatus.textContent = '';
+    }
+
+    btnStartCam.addEventListener('click', startCamera);
+    btnStopCam.addEventListener('click', stopCamera);
+
+    btnSnap.addEventListener('click', async ()=>{
+      if(!stream){ camStatus.textContent = 'ยังไม่ได้เปิดกล้อง'; return; }
+      // วาดเฟรมลงแคนวาสเพื่อส่งให้โมเดลทำนาย
+      const w = video.videoWidth || 640;
+      const h = video.videoHeight || 480;
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+
+      // แสดงรูป snapshot
+      preview.src = canvas.toDataURL('image/jpeg');
+      await showImage();
+      await predict(preview);
+    });
+
+    // =====================
+    // 5) แสดงรูป/ซ่อน placeholder
+    // =====================
+    async function showImage(){
+      video.classList.add('hidden');
+      preview.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+      await new Promise(r=> preview.onload = r);
+    }
+
+    // =====================
+    // 6) ทำนายผลด้วยโมเดล
+    // =====================
+    async function predict(imgEl){
+      if(!model){
+        top1.textContent = 'โมเดลยังไม่พร้อม';
+        return;
+      }
+      const predictions = await model.predict(imgEl, false);
+      // เรียงจากความน่าจะเป็นมากไปน้อย
+      predictions.sort((a,b)=> b.probability - a.probability);
+
+      const best = predictions[0];
+      const pct = (best.probability*100).toFixed(1);
+      top1.textContent = `สิ่งที่ปั้นคือ: ${best.className}  (ความมั่นใจ ${pct}%)`;
+
+      // รายการทั้งหมด + แถบความคืบหน้า
+      predList.innerHTML = '';
+      for(const p of predictions){
+        const percent = (p.probability*100).toFixed(1);
+        const row = document.createElement('div');
+        row.className = 'pred';
+        const name = document.createElement('div');
+        name.textContent = p.className;
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        const fill = document.createElement('span');
+        fill.style.width = percent + '%';
+        bar.appendChild(fill);
+        const val = document.createElement('div');
+        val.textContent = percent + '%';
+        row.appendChild(name); row.appendChild(bar); row.appendChild(val);
+        predList.appendChild(row);
+      }
+    }
+  </script>
+</body>
+</html>
