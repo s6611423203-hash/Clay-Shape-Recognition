@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clay Shape Recognition — AI ทายงานปั้นดินน้ำมัน</title>
+  <title>ClayVision — AI ทายงานปั้นดินน้ำมัน</title>
   <meta name="description" content="สแกนงานปั้นดินน้ำมันด้วยกล้องหรืออัปโหลดรูป แล้วให้ AI (Teachable Machine) ทายว่าเป็นรูปอะไร" />
   <!-- TensorFlow.js & Teachable Machine -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-  <script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></script>
-
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root{--bg:#f6f9ff;--fg:#0f172a;--muted:#475569;--card:#ffffff;--accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--err:#ef4444;--ring:#e2e8f0}
     *{box-sizing:border-box}
@@ -62,10 +61,10 @@
     <div class="card row">
       <section>
         <div class="controls">
-          <button class="btn"><i class="fa-solid fa-upload"></i> อัปโหลดรูป</button>
-          <button class="btn primary"><i class="fa-solid fa-camera"></i> เปิดกล้อง</button>
-          <button class="btn good"><i class="fa-solid fa-circle-dot"></i> ถ่ายและทำนาย</button>
-          <button class="btn warn"><i class="fa-solid fa-stop"></i> ปิดกล้อง</button>
+          <button class="btn"><span class="material-icons">upload</span> อัปโหลดรูป</button>
+          <button class="btn primary"><span class="material-icons">photo_camera</span> เปิดกล้อง</button>
+          <button class="btn good"><span class="material-icons">camera</span> ถ่ายและทำนาย</button>
+          <button class="btn warn"><span class="material-icons">stop</span> ปิดกล้อง</button>
 
         </div>
 
