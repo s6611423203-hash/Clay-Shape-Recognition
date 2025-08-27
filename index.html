@@ -48,29 +48,30 @@
     padding: 0 16px;
   }
 
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .title.center {
+  display: flex;
+  flex-direction: column;   /* จัดเรียงเป็นบน-ล่าง */
+  align-items: center;      /* กึ่งกลางแนวนอน */
+  text-align: center;       /* ข้อความตรงกลางด้วย */
+}
 
-  .logo {
-  width: 64px;              /* กำหนดขนาดกล่องให้พอดีกับโลโก้ */
-  height: 64px;
-  border-radius: 12px;
-  overflow: hidden;         /* ตัดส่วนเกินออก */
-  display: flex;            /* ใช้ Flexbox */
-  align-items: center;      /* จัดกลางแนวตั้ง */
-  justify-content: center;  /* จัดกลางแนวนอน */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  background: white;        /* พื้นหลังรองรับกรณีรูปโปร่งใส */
+.logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;      /* เว้นช่องว่างระหว่างโลโก้กับข้อความ */
 }
 
 .logo img {
-  max-width: 100%;          /* ไม่ให้รูปใหญ่เกินกล่อง */
+  max-width: 100%;
   max-height: 100%;
-  object-fit: contain;      /* ให้รูปอยู่ครบ ไม่โดนตัด */
+  object-fit: contain;
 }
+
 
 
   h1 {
@@ -238,7 +239,7 @@
 
 </head>
 <body>
-  <div class="title">
+  <div class="title center">
     <div class="logo">
       <img src="CSR.png" alt="CSR Logo">
     </div>
