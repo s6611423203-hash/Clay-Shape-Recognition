@@ -55,20 +55,23 @@
   }
 
   .logo {
-  width: 48px;
-  height: 48px;
+  width: 64px;              /* กำหนดขนาดกล่องให้พอดีกับโลโก้ */
+  height: 64px;
   border-radius: 12px;
-  overflow: hidden;           /* บังคับรูปไม่เกินกล่อง */
-  display: grid;
-  place-items: center;
+  overflow: hidden;         /* ตัดส่วนเกินออก */
+  display: flex;            /* ใช้ Flexbox */
+  align-items: center;      /* จัดกลางแนวตั้ง */
+  justify-content: center;  /* จัดกลางแนวนอน */
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  background: white;        /* พื้นหลังรองรับกรณีรูปโปร่งใส */
 }
 
 .logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;          /* ครอบเต็มกล่อง */
+  max-width: 100%;          /* ไม่ให้รูปใหญ่เกินกล่อง */
+  max-height: 100%;
+  object-fit: contain;      /* ให้รูปอยู่ครบ ไม่โดนตัด */
 }
+
 
   h1 {
     font-size: clamp(20px, 4vw, 30px);
