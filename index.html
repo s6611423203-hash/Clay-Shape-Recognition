@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ClayVision — AI ทายงานปั้นดินน้ำมัน</title>
+  <title>Clay Shape Recognition — AI ทายงานปั้นดินน้ำมัน</title>
   <meta name="description" content="สแกนงานปั้นดินน้ำมันด้วยกล้องหรืออัปโหลดรูป แล้วให้ AI (Teachable Machine) ทายว่าเป็นรูปอะไร" />
-  <!-- TensorFlow.js & Teachable Machine -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-  <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root{--bg:#f6f9ff;--fg:#0f172a;--muted:#475569;--card:#ffffff;--accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--err:#ef4444;--ring:#e2e8f0}
@@ -62,11 +60,12 @@
     <div class="card row">
       <section>
         <div class="controls">
-          <!-- เพิ่ม id ให้ปุ่ม และ input file ที่ซ่อน -->
+          <!-- ปุ่มอัปโหลด: เปิดแกลเลอรี/คลังรูป -->
           <button id="btnUpload" class="btn" type="button">
             <span class="material-icons">file_upload</span>อัปโหลดรูป
           </button>
-          <input id="fileInput" type="file" accept="image/*" capture="environment" class="hidden" />
+          <!-- ตัด capture ออก เพื่อให้ระบบเปิดตัวเลือกคลังรูป -->
+          <input id="fileInput" type="file" accept="image/*" class="hidden" />
 
           <button id="btnStartCam" class="btn primary" type="button">
             <span class="material-icons">photo_camera</span>เปิดกล้อง
@@ -90,8 +89,10 @@
 
       <aside>
         <div class="grid-2">
-          <div class="note" id="modelStatus">สถานะโมเดล: <b>กำลังโหลด…</b> (โปรดวางโมเดลไว้ในโฟลเดอร์ <code>/model</code>)</div>
-          <div class="note ok">ทำงานบน HTTPS เท่านั้น — GitHub Pages เป็น HTTPS พร้อมใช้งาน</div>
+          <div class="note" id="modelStatus">
+            สถานะโมเดล: <b>กำลังโหลด…</b> (โปรดวางโมเดลไว้ในโฟลเดอร์ <code>/model</code>)
+          </div>
+          <!-- ลบกล่อง HTTPS note ตามคำขอ -->
         </div>
         <div style="height:12px"></div>
         <div class="result">
@@ -99,16 +100,8 @@
           <h3 id="top1" style="margin:8px 0 4px">—</h3>
           <div id="predList"></div>
         </div>
-        <div style="height:12px"></div>
-        <details>
-          <summary>โครงสร้างไฟล์ที่แนะนำ</summary>
-<pre style="font-size:12px;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:8px;overflow:auto">repo-root/
- ├─ index.html  ← ไฟล์หน้านี้
- └─ model/      ← โฟลเดอร์โมเดลจาก Teachable Machine (TensorFlow.js)
-     ├─ model.json
-     ├─ metadata.json
-     └─ weights.bin</pre>
-        </details>
+
+        <!-- ลบ details โครงสร้างไฟล์ที่แนะนำ ตามคำขอ -->
       </aside>
     </div>
   </main>
@@ -118,10 +111,7 @@
   </footer>
 
   <script>
-    // =====================
-    // 1) โหลดโมเดล TM
-    // =====================
-    const MODEL_URL = "./model/"; // วางโฟลเดอร์โมเดลจาก Teachable Machine ไว้ที่ /model
+    const MODEL_URL = "./model/";
     let model, maxPredictions;
 
     const modelStatus = document.getElementById('modelStatus');
@@ -139,14 +129,11 @@
     }
     loadModel();
 
-    // =====================
-    // 2) ตัวแปร DOM หลัก
-    // =====================
-    const fileInput = document.getElementById('fileInput');
-    const btnUpload = document.getElementById('btnUpload');
+    const fileInput   = document.getElementById('fileInput');
+    const btnUpload   = document.getElementById('btnUpload');
     const btnStartCam = document.getElementById('btnStartCam');
-    const btnStopCam = document.getElementById('btnStopCam');
-    const btnSnap = document.getElementById('btnSnap');
+    const btnStopCam  = document.getElementById('btnStopCam');
+    const btnSnap     = document.getElementById('btnSnap');
 
     const video = document.getElementById('video');
     const preview = document.getElementById('preview');
@@ -157,9 +144,7 @@
     const top1 = document.getElementById('top1');
     const predList = document.getElementById('predList');
 
-    // =====================
-    // 3) อัปโหลดรูปภาพ
-    // =====================
+    // อัปโหลดรูปจากคลัง
     btnUpload.addEventListener('click', ()=> fileInput.click());
     fileInput.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
@@ -171,9 +156,7 @@
       await predict(preview);
     });
 
-    // =====================
-    // 4) กล้อง (getUserMedia)
-    // =====================
+    // กล้อง
     let stream;
     async function startCamera(){
       try{
@@ -220,9 +203,6 @@
       await predict(preview);
     });
 
-    // =====================
-    // 5) แสดงรูป/ซ่อน placeholder
-    // =====================
     async function showImage(){
       video.classList.add('hidden');
       preview.classList.remove('hidden');
@@ -230,14 +210,8 @@
       await new Promise(r => (preview.onload = r));
     }
 
-    // =====================
-    // 6) ทำนายผลด้วยโมเดล
-    // =====================
     async function predict(imgEl){
-      if(!model){
-        top1.textContent = 'โมเดลยังไม่พร้อม';
-        return;
-      }
+      if(!model){ top1.textContent = 'โมเดลยังไม่พร้อม'; return; }
       const predictions = await model.predict(imgEl, false);
       predictions.sort((a,b)=> b.probability - a.probability);
 
