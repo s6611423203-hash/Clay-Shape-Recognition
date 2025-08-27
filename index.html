@@ -9,41 +9,226 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    :root{--bg:#f6f9ff;--fg:#0f172a;--muted:#475569;--card:#ffffff;--accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--err:#ef4444;--ring:#e2e8f0}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";background:var(--bg);color:var(--fg)}
-    header{max-width:960px;margin:24px auto 0;padding:0 16px}
-    .title{display:flex;align-items:center;gap:12px}
-    .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#60a5fa,#34d399);display:grid;place-items:center;color:white;font-weight:800}
-    h1{font-size:clamp(20px,4vw,28px);margin:0}
-    p.sub{color:var(--muted);margin:6px 0 0}
-    main{max-width:960px;margin:20px auto 56px;padding:0 16px}
-    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px 16px 20px;box-shadow:0 6px 20px rgba(2,6,23,.06)}
-    .row{display:grid;gap:16px}
-    @media(min-width:900px){.row{grid-template-columns:1.2fr .8fr}}
-    .controls{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px}
-    button,input[type=file]{font:inherit}
-    .btn{appearance:none;border:1px solid var(--ring);background:#fff;color:var(--fg);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s;box-shadow:0 2px 8px rgba(2,6,23,.04)}
-    .btn:hover{transform:translateY(-1px)}
-    .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-    .btn.good{background:var(--ok);border-color:var(--ok);color:#fff}
-    .btn.warn{background:var(--warn);border-color:var(--warn);color:#fff}
-    .hidden{display:none!important}
-    .previewBox{background:#fff;border:1px dashed var(--ring);border-radius:14px;min-height:320px;display:grid;place-items:center;overflow:hidden}
-    video, img{max-width:100%;height:auto;display:block}
-    .status{font-size:14px;color:var(--muted)}
-    .result{background:#f8fafc;border:1px solid var(--ring);border-radius:12px;padding:12px}
-    .pred{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0}
-    .bar{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden;flex:1;margin:0 10px}
-    .bar>span{display:block;height:100%;background:var(--accent);width:0%}
-    .foot{max-width:960px;margin:10px auto 32px;padding:0 16px;color:var(--muted);font-size:13px}
-    .note{padding:10px 12px;border-left:4px solid var(--accent);background:#eff6ff;border-radius:8px}
-    .danger{border-left-color:var(--err);background:#fff1f2}
-    .ok{border-left-color:var(--ok);background:#ecfdf5}
-    .grid-2{display:grid;gap:12px}
-    @media(min-width:700px){.grid-2{grid-template-columns:1fr 1fr}}
-    .material-icons{font-size:18px;vertical-align:-2px;margin-right:6px}
-  </style>
+  /* =========================
+     🎨 Theme Variables
+  ========================== */
+  :root {
+    --bg-gradient: linear-gradient(135deg, #a5f3fc, #fbcfe8, #fde68a);
+    --fg:     #1f2937;  /* main text (dark gray) */
+    --muted:  #6b7280;  /* secondary text */
+    --card:   rgba(255,255,255,0.85); /* semi-transparent white */
+    --accent: #ec4899;  /* pink */
+    --ok:     #34d399;  /* mint green */
+    --warn:   #f97316;  /* peach orange */
+    --err:    #ef4444;  /* red */
+    --ring:   #e5e7eb;  /* border color */
+  }
+
+  /* =========================
+     🏗️ Global Reset & Body
+  ========================== */
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+                 "Apple Color Emoji", "Segoe UI Emoji";
+    background: var(--bg-gradient);
+    background-attachment: fixed; /* ไล่สีเต็มจอ */
+    color: var(--fg);
+  }
+
+  /* =========================
+     🏷️ Header
+  ========================== */
+  header {
+    max-width: 960px;
+    margin: 24px auto 0;
+    padding: 0 16px;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f87171, #60a5fa, #facc15);
+    display: grid;
+    place-items: center;
+    color: white;
+    font-weight: 900;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  h1 {
+    font-size: clamp(20px, 4vw, 30px);
+    margin: 0;
+  }
+
+  p.sub {
+    color: var(--muted);
+    margin: 6px 0 0;
+  }
+
+  /* =========================
+     📦 Layout / Card
+  ========================== */
+  main {
+    max-width: 960px;
+    margin: 20px auto 56px;
+    padding: 0 16px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--ring);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.1);
+    backdrop-filter: blur(10px); /* glass effect */
+  }
+
+  .row {
+    display: grid;
+    gap: 16px;
+  }
+
+  @media (min-width: 900px) {
+    .row { grid-template-columns: 1.2fr .8fr; }
+  }
+
+  /* =========================
+     🔘 Buttons / Controls
+  ========================== */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 8px 0 12px;
+  }
+
+  button,
+  input[type=file] { font: inherit; }
+
+  .btn {
+    appearance: none;
+    border: none;
+    background: #fff;
+    color: var(--fg);
+    padding: 10px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: .2s;
+    box-shadow: 0 3px 8px rgba(0,0,0,.08);
+  }
+
+  .btn:hover { transform: translateY(-2px) scale(1.02); }
+
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.good    { background: var(--ok);     color: #fff; }
+  .btn.warn    { background: var(--warn);   color: #fff; }
+
+  .hidden { display: none!important; }
+
+  /* =========================
+     🖼️ Preview Area
+  ========================== */
+  .previewBox {
+    background: rgba(255,255,255,0.9);
+    border: 2px dashed var(--ring);
+    border-radius: 16px;
+    min-height: 320px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  video, img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* =========================
+     📝 Result & Status
+  ========================== */
+  .status { font-size: 14px; color: var(--muted); }
+
+  .result {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--ring);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.05);
+  }
+
+  .pred {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px 0;
+  }
+
+  .bar {
+    height: 10px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+    flex: 1;
+    margin: 0 10px;
+  }
+
+  .bar > span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+  }
+
+  /* =========================
+     📑 Footer & Notes
+  ========================== */
+  .foot {
+    max-width: 960px;
+    margin: 10px auto 32px;
+    padding: 0 16px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .note {
+    padding: 10px 12px;
+    border-left: 4px solid var(--accent);
+    background: #fdf2f8;
+    border-radius: 8px;
+  }
+
+  .danger { border-left-color: var(--err);  background: #fef2f2; }
+  .ok     { border-left-color: var(--ok);   background: #ecfdf5; }
+
+  /* =========================
+     📱 Utility
+  ========================== */
+  .grid-2 { display: grid; gap: 12px; }
+  @media (min-width: 700px) {
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+  }
+
+  .material-icons {
+    font-size: 18px;
+    vertical-align: -2px;
+    margin-right: 6px;
+  }
+</style>
+
 </head>
 <body>
   <header>
@@ -96,12 +281,11 @@
         </div>
         <div style="height:12px"></div>
         <div class="result">
-          <div class="status">ผลการทำนาย (Top-1 + รายการทั้งหมด)</div>
+          <div class="status">ผลการทำนาย</div>
           <h3 id="top1" style="margin:8px 0 4px">—</h3>
           <div id="predList"></div>
         </div>
 
-        <!-- ลบ details โครงสร้างไฟล์ที่แนะนำ ตามคำขอ -->
       </aside>
     </div>
   </main>
