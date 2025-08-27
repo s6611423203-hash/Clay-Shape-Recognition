@@ -8,6 +8,7 @@
   <!-- TensorFlow.js & Teachable Machine -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+  <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root{--bg:#f6f9ff;--fg:#0f172a;--muted:#475569;--card:#ffffff;--accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--err:#ef4444;--ring:#e2e8f0}
@@ -29,21 +30,21 @@
     .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
     .btn.good{background:var(--ok);border-color:var(--ok);color:#fff}
     .btn.warn{background:var(--warn);border-color:var(--warn);color:#fff}
-    .btn.ghost{background:#fff}
-    .hidden{display:none !important}
+    .hidden{display:none!important}
     .previewBox{background:#fff;border:1px dashed var(--ring);border-radius:14px;min-height:320px;display:grid;place-items:center;overflow:hidden}
     video, img{max-width:100%;height:auto;display:block}
     .status{font-size:14px;color:var(--muted)}
     .result{background:#f8fafc;border:1px solid var(--ring);border-radius:12px;padding:12px}
     .pred{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0}
     .bar{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden;flex:1;margin:0 10px}
-    .bar > span{display:block;height:100%;background:var(--accent);width:0%}
+    .bar>span{display:block;height:100%;background:var(--accent);width:0%}
     .foot{max-width:960px;margin:10px auto 32px;padding:0 16px;color:var(--muted);font-size:13px}
     .note{padding:10px 12px;border-left:4px solid var(--accent);background:#eff6ff;border-radius:8px}
     .danger{border-left-color:var(--err);background:#fff1f2}
     .ok{border-left-color:var(--ok);background:#ecfdf5}
     .grid-2{display:grid;gap:12px}
     @media(min-width:700px){.grid-2{grid-template-columns:1fr 1fr}}
+    .material-icons{font-size:18px;vertical-align:-2px;margin-right:6px}
   </style>
 </head>
 <body>
@@ -61,15 +62,24 @@
     <div class="card row">
       <section>
         <div class="controls">
-          <button class="btn"><span class="material-icons">upload</span> อัปโหลดรูป</button>
-          <button class="btn primary"><span class="material-icons">photo_camera</span> เปิดกล้อง</button>
-          <button class="btn good"><span class="material-icons">camera</span> ถ่ายและทำนาย</button>
-          <button class="btn warn"><span class="material-icons">stop</span> ปิดกล้อง</button>
+          <!-- เพิ่ม id ให้ปุ่ม และ input file ที่ซ่อน -->
+          <button id="btnUpload" class="btn" type="button">
+            <span class="material-icons">file_upload</span>อัปโหลดรูป
+          </button>
+          <input id="fileInput" type="file" accept="image/*" capture="environment" class="hidden" />
 
+          <button id="btnStartCam" class="btn primary" type="button">
+            <span class="material-icons">photo_camera</span>เปิดกล้อง
+          </button>
+          <button id="btnSnap" class="btn good hidden" type="button">
+            <span class="material-icons">camera_alt</span>ถ่ายและทำนาย
+          </button>
+          <button id="btnStopCam" class="btn warn hidden" type="button">
+            <span class="material-icons">stop</span>ปิดกล้อง
+          </button>
         </div>
 
         <div id="stage" class="previewBox">
-          <!-- แสดงผลลัพธ์: video หรือ img อย่างใดอย่างหนึ่ง -->
           <video id="video" class="hidden" playsinline autoplay muted></video>
           <img id="preview" alt="ตัวอย่างภาพ" class="hidden" />
           <canvas id="canvas" class="hidden"></canvas>
@@ -200,14 +210,11 @@
 
     btnSnap.addEventListener('click', async ()=>{
       if(!stream){ camStatus.textContent = 'ยังไม่ได้เปิดกล้อง'; return; }
-      // วาดเฟรมลงแคนวาสเพื่อส่งให้โมเดลทำนาย
       const w = video.videoWidth || 640;
       const h = video.videoHeight || 480;
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, w, h);
-
-      // แสดงรูป snapshot
       preview.src = canvas.toDataURL('image/jpeg');
       await showImage();
       await predict(preview);
@@ -220,7 +227,7 @@
       video.classList.add('hidden');
       preview.classList.remove('hidden');
       placeholder.classList.add('hidden');
-      await new Promise(r=> preview.onload = r);
+      await new Promise(r => (preview.onload = r));
     }
 
     // =====================
@@ -232,14 +239,12 @@
         return;
       }
       const predictions = await model.predict(imgEl, false);
-      // เรียงจากความน่าจะเป็นมากไปน้อย
       predictions.sort((a,b)=> b.probability - a.probability);
 
       const best = predictions[0];
       const pct = (best.probability*100).toFixed(1);
-      top1.textContent = `สิ่งที่ปั้นคือ: ${best.className}  (ความมั่นใจ ${pct}%)`;
+      top1.textContent = `สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
 
-      // รายการทั้งหมด + แถบความคืบหน้า
       predList.innerHTML = '';
       for(const p of predictions){
         const percent = (p.probability*100).toFixed(1);
