@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="icon" type="image/png" href="CSR.png">
   <style>
   /* =========================
      🎨 Theme Variables
@@ -54,17 +55,20 @@
   }
 
   .logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #f87171, #60a5fa, #facc15);
-    display: grid;
-    place-items: center;
-    color: white;
-    font-weight: 900;
-    font-size: 18px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  }
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  overflow: hidden;           /* บังคับรูปไม่เกินกล่อง */
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;          /* ครอบเต็มกล่อง */
+}
 
   h1 {
     font-size: clamp(20px, 4vw, 30px);
@@ -231,10 +235,11 @@
 
 </head>
 <body>
-  <header>
-    <div class="title">
-      <div class="logo">CV</div>
-      <div>
+  <div class="title">
+    <div class="logo">
+      <img src="CSR.png" alt="CSR Logo">
+    </div>
+    <div>
         <h1>Clay Shape Recognition — AI ทายงานปั้นดินน้ำมัน</h1>
         <p class="sub">อัปโหลดภาพหรือเปิดกล้อง แล้วให้โมเดล <b>Teachable Machine</b> ทำนายว่าเป็นรูปอะไร</p>
       </div>
