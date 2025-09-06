@@ -304,132 +304,174 @@
   </footer>
 
   <script>
-    const MODEL_URL = "./model/";
-    let model, maxPredictions;
+  // =====================
+  // 1) โหลดโมเดล TM
+  // =====================
+  const MODEL_URL = "./model/"; // /model ต้องมี model.json, metadata.json, weights.bin
+  let model, maxPredictions;
 
-    const modelStatus = document.getElementById('modelStatus');
+  const modelStatus = document.getElementById('modelStatus');
+  const top1 = document.getElementById('top1');
+  const predList = document.getElementById('predList');
 
-    async function loadModel(){
-      try{
-        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
-        maxPredictions = model.getTotalClasses();
-        modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> — พบคลาสทั้งหมด: ' + maxPredictions;
-      }catch(err){
-        console.error(err);
-        modelStatus.classList.add('danger');
-        modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b> — โปรดตรวจสอบว่าโฟลเดอร์ <code>/model</code> มี <code>model.json</code>, <code>metadata.json</code>, <code>weights.bin</code>';
-      }
+  async function loadModel(){
+    try{
+      model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+      maxPredictions = model.getTotalClasses();
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> — พบคลาสทั้งหมด: ' + maxPredictions;
+    }catch(err){
+      console.error(err);
+      modelStatus.classList.add('danger');
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b> — ตรวจไฟล์ใน <code>/model</code>';
     }
-    loadModel();
+  }
+  loadModel();
 
-    const fileInput   = document.getElementById('fileInput');
-    const btnUpload   = document.getElementById('btnUpload');
-    const btnStartCam = document.getElementById('btnStartCam');
-    const btnStopCam  = document.getElementById('btnStopCam');
-    const btnSnap     = document.getElementById('btnSnap');
+  // =====================
+  // 2) DOM / ตัวแปรกล้อง
+  // =====================
+  const fileInput   = document.getElementById('fileInput');
+  const btnUpload   = document.getElementById('btnUpload');
+  const btnStartCam = document.getElementById('btnStartCam');
+  const btnStopCam  = document.getElementById('btnStopCam');
+  const btnSnap     = document.getElementById('btnSnap'); // จะซ่อนไว้ ใช้ snapshot ไม่จำเป็นแล้ว
 
-    const video = document.getElementById('video');
-    const preview = document.getElementById('preview');
-    const placeholder = document.getElementById('placeholder');
-    const canvas = document.getElementById('canvas');
-    const camStatus = document.getElementById('camStatus');
+  const video = document.getElementById('video');
+  const preview = document.getElementById('preview');
+  const placeholder = document.getElementById('placeholder');
+  const canvas = document.getElementById('canvas');
+  const camStatus = document.getElementById('camStatus');
 
-    const top1 = document.getElementById('top1');
-    const predList = document.getElementById('predList');
+  // =====================
+  // 3) อัปโหลดรูป (ยังคงทำงานได้เหมือนเดิม)
+  // =====================
+  btnUpload.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    stopCamera();
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    await showImage();
+    await predict(preview);
+  });
 
-    // อัปโหลดรูปจากคลัง
-    btnUpload.addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', async (e)=>{
-      const file = e.target.files && e.target.files[0];
-      if(!file) return;
-      stopCamera();
-      const url = URL.createObjectURL(file);
-      preview.src = url;
-      await showImage();
-      await predict(preview);
-    });
+  // =====================
+  // 4) กล้องแบบเรียลไทม์
+  // =====================
+  let stream, running = false;
+  const TARGET_FPS = 10;                // จำกัดความถี่การทำนาย ~10 เฟรม/วินาที
+  const FRAME_INTERVAL = 1000 / TARGET_FPS;
+  let lastTime = 0;
 
-    // กล้อง
-    let stream;
-    async function startCamera(){
-      try{
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false
-        });
-        video.srcObject = stream;
-        video.classList.remove('hidden');
-        preview.classList.add('hidden');
-        placeholder.classList.add('hidden');
-        btnSnap.classList.remove('hidden');
-        btnStopCam.classList.remove('hidden');
-        camStatus.textContent = 'กล้องกำลังทำงาน (แตะ “ถ่ายและทำนาย”)';
-      }catch(err){
-        console.error(err);
-        camStatus.textContent = 'ไม่สามารถเปิดกล้องได้: ' + err.message;
-      }
-    }
+  async function startCamera(){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      video.srcObject = stream;
 
-    function stopCamera(){
-      if(stream){
-        stream.getTracks().forEach(t=> t.stop());
-        stream = null;
-      }
-      video.classList.add('hidden');
-      btnSnap.classList.add('hidden');
-      btnStopCam.classList.add('hidden');
-      camStatus.textContent = '';
-    }
+      // รอให้วิดีโอพร้อม (รู้ขนาดเฟรม)
+      await new Promise(res => video.onloadedmetadata = res);
+      video.play();
 
-    btnStartCam.addEventListener('click', startCamera);
-    btnStopCam.addEventListener('click', stopCamera);
-
-    btnSnap.addEventListener('click', async ()=>{
-      if(!stream){ camStatus.textContent = 'ยังไม่ได้เปิดกล้อง'; return; }
-      const w = video.videoWidth || 640;
-      const h = video.videoHeight || 480;
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, w, h);
-      preview.src = canvas.toDataURL('image/jpeg');
-      await showImage();
-      await predict(preview);
-    });
-
-    async function showImage(){
-      video.classList.add('hidden');
-      preview.classList.remove('hidden');
+      // UI
+      video.classList.remove('hidden');
+      preview.classList.add('hidden');
       placeholder.classList.add('hidden');
-      await new Promise(r => (preview.onload = r));
+      btnSnap.classList.add('hidden');        // ไม่ใช้ปุ่มถ่ายแล้ว
+      btnStopCam.classList.remove('hidden');
+      camStatus.textContent = 'โหมดเรียลไทม์: กล้องกำลังทำงานและกำลังทำนาย…';
+
+      // เริ่มลูปทำนาย
+      running = true;
+      requestAnimationFrame(predictLoop);
+    }catch(err){
+      console.error(err);
+      camStatus.textContent = 'ไม่สามารถเปิดกล้องได้: ' + err.message;
     }
+  }
 
-    async function predict(imgEl){
-      if(!model){ top1.textContent = 'โมเดลยังไม่พร้อม'; return; }
-      const predictions = await model.predict(imgEl, false);
-      predictions.sort((a,b)=> b.probability - a.probability);
+  function stopCamera(){
+    running = false;
+    if(stream){
+      stream.getTracks().forEach(t=> t.stop());
+      stream = null;
+    }
+    video.classList.add('hidden');
+    btnStopCam.classList.add('hidden');
+    camStatus.textContent = '';
+  }
 
-      const best = predictions[0];
-      const pct = (best.probability*100).toFixed(1);
-      top1.textContent = `สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
+  btnStartCam.addEventListener('click', startCamera);
+  btnStopCam.addEventListener('click', stopCamera);
 
+  async function predictLoop(now){
+    if(!running) return;
+    // throttle ความถี่
+    if(now - lastTime >= FRAME_INTERVAL){
+      lastTime = now;
+      if(model && video.readyState >= 2){ // HAVE_CURRENT_DATA
+        try{
+          const preds = await model.predict(video, false);
+          renderPredictions(preds);
+        }catch(e){ console.error(e); }
+      }
+    }
+    requestAnimationFrame(predictLoop);
+  }
+
+  // =====================
+  // 5) แสดงรูปอัปโหลด + ทำนายครั้งเดียว (ยังเก็บไว้)
+  // =====================
+  async function showImage(){
+    video.classList.add('hidden');
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    await new Promise(r => (preview.onload = r));
+  }
+
+  async function predict(imgEl){
+    if(!model){ top1.textContent = 'โมเดลยังไม่พร้อม'; return; }
+    const predictions = await model.predict(imgEl, false);
+    renderPredictions(predictions);
+  }
+
+  // =====================
+  // 6) วาดผลลัพธ์ (Top-1 + แถบเปอร์เซ็นต์)
+  // =====================
+  function renderPredictions(predictions){
+    predictions.sort((a,b)=> b.probability - a.probability);
+
+    const best = predictions[0];
+    const pct = (best.probability*100).toFixed(1);
+    top1.textContent = `สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
+
+    // สร้าง DOM เฉพาะตอนจำเป็น ลดงาน GC
+    if(predList.childElementCount !== predictions.length){
       predList.innerHTML = '';
-      for(const p of predictions){
-        const percent = (p.probability*100).toFixed(1);
+      for(let i=0;i<predictions.length;i++){
         const row = document.createElement('div');
         row.className = 'pred';
-        const name = document.createElement('div');
-        name.textContent = p.className;
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        const fill = document.createElement('span');
-        fill.style.width = percent + '%';
-        bar.appendChild(fill);
-        const val = document.createElement('div');
-        val.textContent = percent + '%';
-        row.appendChild(name); row.appendChild(bar); row.appendChild(val);
+        row.innerHTML = `
+          <div class="name"></div>
+          <div class="bar"><span></span></div>
+          <div class="val"></div>
+        `;
         predList.appendChild(row);
       }
     }
-  </script>
+    // อัปเดตค่าเปอร์เซ็นต์
+    [...predList.children].forEach((row, i)=>{
+      const p = predictions[i];
+      const percent = (p.probability*100).toFixed(1);
+      row.querySelector('.name').textContent = p.className;
+      row.querySelector('.bar > span').style.width = percent + '%';
+      row.querySelector('.val').textContent = percent + '%';
+    });
+  }
+</script>
+
 </body>
 </html>
