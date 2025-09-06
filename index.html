@@ -235,6 +235,25 @@
     vertical-align: -2px;
     margin-right: 6px;
   }
+
+    /* ป้าย LIVE กระพริบ */
+.live-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background: #ef4444; /* แดง */
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.2; }
+}
+
 </style>
 
 </head>
@@ -261,15 +280,12 @@
           <!-- ตัด capture ออก เพื่อให้ระบบเปิดตัวเลือกคลังรูป -->
           <input id="fileInput" type="file" accept="image/*" class="hidden" />
 
-          <button id="btnStartCam" class="btn primary" type="button">
-            <span class="material-icons">photo_camera</span>เปิดกล้อง
+          <!-- ปุ่ม LIVE + ป้าย -->
+          <button id="btnToggleLive" class="btn primary" type="button">
+            ▶️ เริ่ม LIVE
           </button>
-          <button id="btnSnap" class="btn good hidden" type="button">
-            <span class="material-icons">camera_alt</span>ถ่ายและทำนาย
-          </button>
-          <button id="btnStopCam" class="btn warn hidden" type="button">
-            <span class="material-icons">stop</span>ปิดกล้อง
-          </button>
+          <span id="liveBadge" class="live-badge hidden">● LIVE</span>
+
         </div>
 
         <div id="stage" class="previewBox">
@@ -332,8 +348,11 @@
   // =====================
   const fileInput   = document.getElementById('fileInput');
   const btnUpload   = document.getElementById('btnUpload');
-  const btnStartCam = document.getElementById('btnStartCam');
-  const btnStopCam  = document.getElementById('btnStopCam');
+    
+  const btnToggleLive = document.getElementById('btnToggleLive');
+  const liveBadge = document.getElementById('liveBadge');
+  let isLive = false;
+    
   const btnSnap     = document.getElementById('btnSnap'); // จะซ่อนไว้ ใช้ snapshot ไม่จำเป็นแล้ว
 
   const video = document.getElementById('video');
@@ -404,9 +423,20 @@
     camStatus.textContent = '';
   }
 
-  btnStartCam.addEventListener('click', startCamera);
-  btnStopCam.addEventListener('click', stopCamera);
-
+ btnToggleLive.addEventListener('click', async ()=>{
+  if(!isLive){
+    await startCamera();
+    btnToggleLive.textContent = "⏹ หยุด LIVE";
+    liveBadge.classList.remove('hidden');
+    isLive = true;
+  } else {
+    stopCamera();
+    btnToggleLive.textContent = "▶️ เริ่ม LIVE";
+    liveBadge.classList.add('hidden');
+    isLive = false;
+  }
+});
+    
   async function predictLoop(now){
     if(!running) return;
     // throttle ความถี่
