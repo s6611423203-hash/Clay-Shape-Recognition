@@ -305,7 +305,7 @@
     <div class="note">💡 เคล็ดลับความแม่นยำ: จัดไฟให้สม่ำเสมอ ฉากหลังเรียบ และถ่ายหลายมุมต่อหนึ่งคลาส</div>
   </footer>
 
- <script>
+<script>
   // =====================
   // 1) โหลดโมเดล TM
   // =====================
@@ -340,17 +340,131 @@
     "หมู": "sounds/pig.mp3"
   };
 
+  let lastSoundTime = 0; // กันเสียงซ้อน
   function playSoundForClass(label) {
+    const now = Date.now();
+    if(now - lastSoundTime < 3000) return; // จำกัดไม่เกินทุก 3 วินาที
     const file = CLASS_SOUNDS[label];
     if(file){
       const audio = new Audio(file);
       audio.volume = 0.9; // ปรับความดัง
       audio.play().catch(err => console.warn("เล่นเสียงไม่ได้:", err));
+      lastSoundTime = now;
     }
   }
 
   // =====================
-  // 6) วาดผลลัพธ์ (Top-1 + แถบเปอร์เซ็นต์)
+  // 2) DOM / ตัวแปรกล้อง
+  // =====================
+  const fileInput   = document.getElementById('fileInput');
+  const btnUpload   = document.getElementById('btnUpload');
+  const btnStartCam = document.getElementById('btnStartCam');
+  const btnStopCam  = document.getElementById('btnStopCam');
+  const btnSnap     = document.getElementById('btnSnap'); 
+
+  const video = document.getElementById('video');
+  const preview = document.getElementById('preview');
+  const placeholder = document.getElementById('placeholder');
+  const canvas = document.getElementById('canvas');
+  const camStatus = document.getElementById('camStatus');
+
+  // =====================
+  // 3) อัปโหลดรูป
+  // =====================
+  btnUpload.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    stopCamera();
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    await showImage();
+    await predict(preview);
+  });
+
+  // =====================
+  // 4) กล้องแบบเรียลไทม์
+  // =====================
+  let stream, running = false;
+  const TARGET_FPS = 5;                // จำกัดความถี่การทำนาย (เฟรม/วินาที)
+  const FRAME_INTERVAL = 1000 / TARGET_FPS;
+  let lastTime = 0;
+
+  async function startCamera(){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "environment" },
+        audio: false
+      });
+      video.srcObject = stream;
+
+      await new Promise(res => video.onloadedmetadata = res);
+      video.play();
+
+      video.classList.remove('hidden');
+      preview.classList.add('hidden');
+      placeholder.classList.add('hidden');
+      btnSnap.classList.add('hidden');
+      btnStopCam.classList.remove('hidden');
+      camStatus.textContent = 'โหมดเรียลไทม์: กล้องกำลังทำงานและกำลังทำนาย…';
+
+      running = true;
+      requestAnimationFrame(predictLoop);
+    }catch(err){
+      console.error(err);
+      camStatus.textContent = 'ไม่สามารถเปิดกล้องได้: ' + err.message;
+    }
+  }
+
+  function stopCamera(){
+    running = false;
+    if(stream){
+      stream.getTracks().forEach(t=> t.stop());
+      stream = null;
+    }
+    video.classList.add('hidden');
+    btnStopCam.classList.add('hidden');
+    camStatus.textContent = '';
+  }
+
+  btnStartCam.addEventListener('click', startCamera);
+  btnStopCam.addEventListener('click', stopCamera);
+
+  async function predictLoop(now){
+    if(!running) return;
+    if(now - lastTime >= FRAME_INTERVAL){
+      lastTime = now;
+      if(model && video.readyState >= 2){
+        try{
+          const preds = await model.predict(video, false);
+          renderPredictions(preds);
+        }catch(e){ console.error(e); }
+      }
+    }
+    requestAnimationFrame(predictLoop);
+  }
+
+  // =====================
+  // 5) แสดงรูปอัปโหลด
+  // =====================
+  async function showImage(){
+    video.classList.add('hidden');
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    await new Promise(r => (preview.onload = r));
+  }
+
+  // =====================
+  // 6) ทำนายครั้งเดียว
+  // =====================
+  async function predict(imgEl){
+    if(!model){ top1.textContent = 'โมเดลยังไม่พร้อม'; return; }
+    const predictions = await model.predict(imgEl, false);
+    renderPredictions(predictions);
+  }
+
+  // =====================
+  // 7) วาดผลลัพธ์
   // =====================
   function renderPredictions(predictions){
     predictions.sort((a,b)=> b.probability - a.probability);
@@ -359,7 +473,6 @@
     const pct = (best.probability*100).toFixed(1);
     top1.textContent = `สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
 
-    // อัปเดต DOM
     if(predList.childElementCount !== predictions.length){
       predList.innerHTML = '';
       for(let i=0;i<predictions.length;i++){
@@ -387,6 +500,7 @@
     }
   }
 </script>
+
 
 </body>
 </html>
