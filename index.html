@@ -305,11 +305,11 @@
     <div class="note">💡 เคล็ดลับความแม่นยำ: จัดไฟให้สม่ำเสมอ ฉากหลังเรียบ และถ่ายหลายมุมต่อหนึ่งคลาส</div>
   </footer>
 
-  <script>
+ <script>
   // =====================
   // 1) โหลดโมเดล TM
   // =====================
-  const MODEL_URL = "./model/"; // /model ต้องมี model.json, metadata.json, weights.bin
+  const MODEL_URL = "./model/"; 
   let model, maxPredictions;
 
   const modelStatus = document.getElementById('modelStatus');
@@ -324,124 +324,29 @@
     }catch(err){
       console.error(err);
       modelStatus.classList.add('danger');
-      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b> — ตรวจไฟล์ใน <code>/model</code>';
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b>';
     }
   }
   loadModel();
 
   // =====================
-  // 2) DOM / ตัวแปรกล้อง
+  // 🎵 Class → Sound Mapping
   // =====================
-  const fileInput   = document.getElementById('fileInput');
-  const btnUpload   = document.getElementById('btnUpload');
-  const btnStartCam = document.getElementById('btnStartCam');
-  const btnStopCam  = document.getElementById('btnStopCam');
-  const btnSnap     = document.getElementById('btnSnap'); // จะซ่อนไว้ ใช้ snapshot ไม่จำเป็นแล้ว
+  const CLASS_SOUNDS = {
+    "ควาย": "sounds/buffalo.mp3",
+    "รถ": "sounds/car.mp3",
+    "บ้าน": "sounds/house.mp3",
+    "เพนกวิน": "sounds/penguin.mp3",
+    "หมู": "sounds/pig.mp3"
+  };
 
-  const video = document.getElementById('video');
-  const preview = document.getElementById('preview');
-  const placeholder = document.getElementById('placeholder');
-  const canvas = document.getElementById('canvas');
-  const camStatus = document.getElementById('camStatus');
-
-  // =====================
-  // 3) อัปโหลดรูป (ยังคงทำงานได้เหมือนเดิม)
-  // =====================
-  btnUpload.addEventListener('click', ()=> fileInput.click());
-  fileInput.addEventListener('change', async (e)=>{
-    const file = e.target.files && e.target.files[0];
-    if(!file) return;
-    stopCamera();
-    const url = URL.createObjectURL(file);
-    preview.src = url;
-    await showImage();
-    await predict(preview);
-  });
-
-  // =====================
-  // 4) กล้องแบบเรียลไทม์
-  // =====================
-  let stream, running = false;
-  const TARGET_FPS = 2;                // จำกัดความถี่การทำนาย ~10 เฟรม/วินาที
-  const FRAME_INTERVAL = 1000 / TARGET_FPS;
-  let lastTime = 0;
-
-  async function startCamera(){
-    try{
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-        width:  { ideal: 640 }, 
-        height: { ideal: 480 }, 
-        facingMode: "environment"   // ใช้กล้องหลัง (มือถือ)
-      },
-      audio: false
-      });
-      video.srcObject = stream;
-
-      // รอให้วิดีโอพร้อม (รู้ขนาดเฟรม)
-      await new Promise(res => video.onloadedmetadata = res);
-      video.play();
-
-      // UI
-      video.classList.remove('hidden');
-      preview.classList.add('hidden');
-      placeholder.classList.add('hidden');
-      btnSnap.classList.add('hidden');        // ไม่ใช้ปุ่มถ่ายแล้ว
-      btnStopCam.classList.remove('hidden');
-      camStatus.textContent = 'โหมดเรียลไทม์: กล้องกำลังทำงานและกำลังทำนาย…';
-
-      // เริ่มลูปทำนาย
-      running = true;
-      requestAnimationFrame(predictLoop);
-    }catch(err){
-      console.error(err);
-      camStatus.textContent = 'ไม่สามารถเปิดกล้องได้: ' + err.message;
+  function playSoundForClass(label) {
+    const file = CLASS_SOUNDS[label];
+    if(file){
+      const audio = new Audio(file);
+      audio.volume = 0.9; // ปรับความดัง
+      audio.play().catch(err => console.warn("เล่นเสียงไม่ได้:", err));
     }
-  }
-
-  function stopCamera(){
-    running = false;
-    if(stream){
-      stream.getTracks().forEach(t=> t.stop());
-      stream = null;
-    }
-    video.classList.add('hidden');
-    btnStopCam.classList.add('hidden');
-    camStatus.textContent = '';
-  }
-
-  btnStartCam.addEventListener('click', startCamera);
-  btnStopCam.addEventListener('click', stopCamera);
-
-  async function predictLoop(now){
-    if(!running) return;
-    // throttle ความถี่
-    if(now - lastTime >= FRAME_INTERVAL){
-      lastTime = now;
-      if(model && video.readyState >= 2){ // HAVE_CURRENT_DATA
-        try{
-          const preds = await model.predict(video, false);
-          renderPredictions(preds);
-        }catch(e){ console.error(e); }
-      }
-    }
-    requestAnimationFrame(predictLoop);
-  }
-
-  // =====================
-  // 5) แสดงรูปอัปโหลด + ทำนายครั้งเดียว (ยังเก็บไว้)
-  // =====================
-  async function showImage(){
-    video.classList.add('hidden');
-    preview.classList.remove('hidden');
-    placeholder.classList.add('hidden');
-    await new Promise(r => (preview.onload = r));
-  }
-
-  async function predict(imgEl){
-    if(!model){ top1.textContent = 'โมเดลยังไม่พร้อม'; return; }
-    const predictions = await model.predict(imgEl, false);
-    renderPredictions(predictions);
   }
 
   // =====================
@@ -454,7 +359,7 @@
     const pct = (best.probability*100).toFixed(1);
     top1.textContent = `สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
 
-    // สร้าง DOM เฉพาะตอนจำเป็น ลดงาน GC
+    // อัปเดต DOM
     if(predList.childElementCount !== predictions.length){
       predList.innerHTML = '';
       for(let i=0;i<predictions.length;i++){
@@ -468,7 +373,6 @@
         predList.appendChild(row);
       }
     }
-    // อัปเดตค่าเปอร์เซ็นต์
     [...predList.children].forEach((row, i)=>{
       const p = predictions[i];
       const percent = (p.probability*100).toFixed(1);
@@ -476,6 +380,11 @@
       row.querySelector('.bar > span').style.width = percent + '%';
       row.querySelector('.val').textContent = percent + '%';
     });
+
+    // ✅ เล่นเสียงเมื่อมั่นใจ >= 70%
+    if(best.probability >= 0.7){
+      playSoundForClass(best.className);
+    }
   }
 </script>
 
