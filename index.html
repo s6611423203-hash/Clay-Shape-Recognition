@@ -362,15 +362,19 @@
   // 4) กล้องแบบเรียลไทม์
   // =====================
   let stream, running = false;
-  const TARGET_FPS = 10;                // จำกัดความถี่การทำนาย ~10 เฟรม/วินาที
+  const TARGET_FPS = 2;                // จำกัดความถี่การทำนาย ~10 เฟรม/วินาที
   const FRAME_INTERVAL = 1000 / TARGET_FPS;
   let lastTime = 0;
 
   async function startCamera(){
     try{
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
+        video: { 
+        width:  { ideal: 640 }, 
+        height: { ideal: 480 }, 
+        facingMode: "environment"   // ใช้กล้องหลัง (มือถือ)
+      },
+      audio: false
       });
       video.srcObject = stream;
 
