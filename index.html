@@ -118,11 +118,13 @@
   <h3>โหมดแข่งขัน</h3>
   <div id="challenge">—</div>
   <div id="time">เหลือเวลา: — วิ</div>
+  <div id="scoreboard">คะแนนรวม: 0</div> <!-- ✅ แสดงคะแนน -->
   <div id="leaderboard"></div>
   <button id="btnStartGame" class="btn good" type="button">
     <span class="material-icons">sports_esports</span> เริ่มแข่ง
   </button>
 </div>
+
 
   </main>
 
@@ -136,6 +138,9 @@
   // =====================
   const MODEL_URL = "./model/";
   let model, maxPredictions;
+  let score = 0;
+  let gameTime = 120; // เวลาต่อรอบ (วินาที)
+  let timerInterval;
   const modelStatus = document.getElementById('modelStatus');
   const top1 = document.getElementById('top1');
   const predList = document.getElementById('predList');
@@ -294,15 +299,37 @@ let players = [
   {name: "Player 1", score: 0},
   {name: "Player 2", score: 0}
 ];
-let currentPlayer = 0;   // เริ่มที่ Player 1
+let currentPlayer = 0;   
 let currentChallenge = "";
-let roundTime = 20;
-let timer;
+let roundTime = 20;      // เวลาต่อรอบ
+let totalTime = 120;     // เวลาแข่งขันรวม (วินาที)
+let timer, gameTimer;
 
-document.getElementById("btnStartGame").addEventListener("click", startRound);
+// ปุ่มเริ่มเกม
+document.getElementById("btnStartGame").addEventListener("click", startGame);
+
+function startGame(){
+  // รีเซ็ตคะแนนและเวลา
+  players.forEach(p => p.score = 0);
+  totalTime = 120;
+  updateLeaderboard();
+  startRound();
+
+  clearInterval(gameTimer);
+  gameTimer = setInterval(()=>{
+    totalTime--;
+    document.getElementById("scoreboard").textContent = 
+      "⏱️ เวลาเกมรวม: " + totalTime + " วิ";
+    if(totalTime <= 0){
+      clearInterval(gameTimer);
+      clearInterval(timer);
+      endGame();
+    }
+  },1000);
+}
 
 function startRound(){
-  const classes = Object.keys(CLASS_SOUNDS); // ใช้ชื่อ class จากโมเดล
+  const classes = Object.keys(CLASS_SOUNDS);
   currentChallenge = classes[Math.floor(Math.random()*classes.length)];
   document.getElementById("challenge").textContent =
     `${players[currentPlayer].name} โจทย์: ปั้น ${currentChallenge}`;
@@ -318,12 +345,10 @@ function startRound(){
       nextTurn();
     }
   },1000);
-
-  updateLeaderboard();
 }
 
 function nextTurn(){
-  currentPlayer = (currentPlayer+1) % players.length; // สลับผู้เล่น
+  currentPlayer = (currentPlayer+1) % players.length;
   startRound();
 }
 
@@ -342,6 +367,13 @@ function updateLeaderboard(){
     html += `<div>${p.name}: ${p.score} คะแนน</div>`;
   });
   document.getElementById("leaderboard").innerHTML = html;
+}
+
+function endGame(){
+  let winner = players.reduce((a,b)=> a.score > b.score ? a : b);
+  document.getElementById("challenge").textContent = 
+    `🎉 จบเกม! ผู้ชนะคือ ${winner.name} ด้วย ${winner.score} คะแนน`;
+  document.getElementById("time").textContent = "หมดเวลา!";
 }
 
 </script>
