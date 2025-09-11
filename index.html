@@ -9,241 +9,67 @@
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="icon" type="image/png" href="CSR.png">
+
   <style>
-  /* =========================
-     🎨 Theme Variables
-  ========================== */
   :root {
     --bg-gradient: linear-gradient(135deg, #a5f3fc, #fbcfe8, #fde68a);
-    --fg:     #1f2937;  /* main text (dark gray) */
-    --muted:  #6b7280;  /* secondary text */
-    --card:   rgba(255,255,255,0.85); /* semi-transparent white */
-    --accent: #ec4899;  /* pink */
-    --ok:     #34d399;  /* mint green */
-    --warn:   #f97316;  /* peach orange */
-    --err:    #ef4444;  /* red */
-    --ring:   #e5e7eb;  /* border color */
+    --fg: #1f2937;
+    --muted: #6b7280;
+    --card: rgba(255,255,255,0.85);
+    --accent: #ec4899;
+    --ok: #34d399;
+    --warn: #f97316;
+    --err: #ef4444;
+    --ring: #e5e7eb;
   }
-
-  /* =========================
-     🏗️ Global Reset & Body
-  ========================== */
-  * { box-sizing: border-box; }
 
   body {
     margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
-                 "Apple Color Emoji", "Segoe UI Emoji";
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     background: var(--bg-gradient);
-    background-attachment: fixed; /* ไล่สีเต็มจอ */
+    background-attachment: fixed;
     color: var(--fg);
   }
 
-  /* =========================
-     🏷️ Header
-  ========================== */
-  header {
-    max-width: 960px;
-    margin: 24px auto 0;
-    padding: 0 16px;
-  }
+  header { max-width: 960px; margin: 24px auto 0; padding: 0 16px; }
+  .title.center { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .logo { width: 100px; height: 100px; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  h1 { font-size: clamp(20px, 4vw, 30px); margin: 0; }
+  p.sub { color: var(--muted); margin: 6px 0 0; }
 
-  .title.center {
-  display: flex;
-  flex-direction: column;   /* จัดเรียงเป็นบน-ล่าง */
-  align-items: center;      /* กึ่งกลางแนวนอน */
-  text-align: center;       /* ข้อความตรงกลางด้วย */
-}
+  main { max-width: 960px; margin: 20px auto 56px; padding: 0 16px; }
+  .card { background: var(--card); border: 1px solid var(--ring); border-radius: 18px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.1); backdrop-filter: blur(10px); margin-bottom: 20px; }
+  .row { display: grid; gap: 16px; }
+  @media (min-width: 900px) { .row { grid-template-columns: 1.2fr .8fr; } }
 
-.logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;      /* เว้นช่องว่างระหว่างโลโก้กับข้อความ */
-}
-
-.logo img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-
-
-  h1 {
-    font-size: clamp(20px, 4vw, 30px);
-    margin: 0;
-  }
-
-  p.sub {
-    color: var(--muted);
-    margin: 6px 0 0;
-  }
-
-  /* =========================
-     📦 Layout / Card
-  ========================== */
-  main {
-    max-width: 960px;
-    margin: 20px auto 56px;
-    padding: 0 16px;
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--ring);
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.1);
-    backdrop-filter: blur(10px); /* glass effect */
-  }
-
-  .row {
-    display: grid;
-    gap: 16px;
-  }
-
-  @media (min-width: 900px) {
-    .row { grid-template-columns: 1.2fr .8fr; }
-  }
-
-  /* =========================
-     🔘 Buttons / Controls
-  ========================== */
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 8px 0 12px;
-  }
-
-  button,
-  input[type=file] { font: inherit; }
-
-  .btn {
-    appearance: none;
-    border: none;
-    background: #fff;
-    color: var(--fg);
-    padding: 10px 16px;
-    border-radius: 14px;
-    cursor: pointer;
-    transition: .2s;
-    box-shadow: 0 3px 8px rgba(0,0,0,.08);
-  }
-
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px; }
+  .btn { appearance: none; border: none; background: #fff; color: var(--fg); padding: 10px 16px; border-radius: 14px; cursor: pointer; transition: .2s; box-shadow: 0 3px 8px rgba(0,0,0,.08); }
   .btn:hover { transform: translateY(-2px) scale(1.02); }
-
   .btn.primary { background: var(--accent); color: #fff; }
-  .btn.good    { background: var(--ok);     color: #fff; }
-  .btn.warn    { background: var(--warn);   color: #fff; }
-
+  .btn.good { background: var(--ok); color: #fff; }
+  .btn.warn { background: var(--warn); color: #fff; }
   .hidden { display: none!important; }
 
-  /* =========================
-     🖼️ Preview Area
-  ========================== */
-  .previewBox {
-    background: rgba(255,255,255,0.9);
-    border: 2px dashed var(--ring);
-    border-radius: 16px;
-    min-height: 320px;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-  }
+  .previewBox { background: rgba(255,255,255,0.9); border: 2px dashed var(--ring); border-radius: 16px; min-height: 320px; display: grid; place-items: center; overflow: hidden; }
+  video, img { max-width: 100%; height: auto; display: block; }
 
-  video, img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  /* =========================
-     📝 Result & Status
-  ========================== */
   .status { font-size: 14px; color: var(--muted); }
+  .result { background: rgba(255,255,255,0.9); border: 1px solid var(--ring); border-radius: 14px; padding: 14px; box-shadow: 0 3px 10px rgba(0,0,0,.05); }
+  .pred { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+  .bar { height: 10px; background: #f3f4f6; border-radius: 999px; overflow: hidden; flex: 1; margin: 0 10px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); width: 0%; }
 
-  .result {
-    background: rgba(255,255,255,0.9);
-    border: 1px solid var(--ring);
-    border-radius: 14px;
-    padding: 14px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.05);
-  }
-
-  .pred {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 8px 0;
-  }
-
-  .bar {
-    height: 10px;
-    background: #f3f4f6;
-    border-radius: 999px;
-    overflow: hidden;
-    flex: 1;
-    margin: 0 10px;
-  }
-
-  .bar > span {
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-  }
-
-  /* =========================
-     📑 Footer & Notes
-  ========================== */
-  .foot {
-    max-width: 960px;
-    margin: 10px auto 32px;
-    padding: 0 16px;
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-  }
-
-  .note {
-    padding: 10px 12px;
-    border-left: 4px solid var(--accent);
-    background: #fdf2f8;
-    border-radius: 8px;
-  }
-
-  .danger { border-left-color: var(--err);  background: #fef2f2; }
-  .ok     { border-left-color: var(--ok);   background: #ecfdf5; }
-
-  /* =========================
-     📱 Utility
-  ========================== */
-  .grid-2 { display: grid; gap: 12px; }
-  @media (min-width: 700px) {
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-  }
-
-  .material-icons {
-    font-size: 18px;
-    vertical-align: -2px;
-    margin-right: 6px;
-  }
-</style>
-
+  .foot { max-width: 960px; margin: 10px auto 32px; padding: 0 16px; color: var(--muted); font-size: 13px; text-align: center; }
+  .note { padding: 10px 12px; border-left: 4px solid var(--accent); background: #fdf2f8; border-radius: 8px; }
+  .danger { border-left-color: var(--err); background: #fef2f2; }
+  .ok { border-left-color: var(--ok); background: #ecfdf5; }
+  </style>
 </head>
 <body>
   <header>
     <div class="title center">
-      <div class="logo">
-        <img src="CSR.png" alt="CSR Logo">
-      </div>
+      <div class="logo"><img src="CSR.png" alt="CSR Logo"></div>
       <div>
         <h1>Clay Shape Recognition — AI ทายงานปั้นดินน้ำมัน</h1>
         <p class="sub">อัปโหลดภาพหรือเปิดกล้อง แล้วให้โมเดล <b>Teachable Machine</b> ทำนายว่าเป็นรูปอะไร</p>
@@ -251,76 +77,64 @@
     </div>
   </header>
 
-
   <main>
+    <!-- กล้องและผลทำนาย -->
     <div class="card row">
       <section>
         <div class="controls">
-          <!-- ปุ่มอัปโหลด: เปิดแกลเลอรี/คลังรูป -->
-          <button id="btnUpload" class="btn" type="button">
-            <span class="material-icons">file_upload</span>อัปโหลดรูป
-          </button>
-          <!-- ตัด capture ออก เพื่อให้ระบบเปิดตัวเลือกคลังรูป -->
+          <button id="btnUpload" class="btn"><span class="material-icons">file_upload</span>อัปโหลดรูป</button>
           <input id="fileInput" type="file" accept="image/*" class="hidden" />
-
-          <button id="btnStartCam" class="btn primary" type="button">
-            <span class="material-icons">photo_camera</span>เปิดกล้อง
-          </button>
-          <button id="btnSnap" class="btn good hidden" type="button">
-            <span class="material-icons">camera_alt</span>ถ่ายและทำนาย
-          </button>
-          <button id="btnStopCam" class="btn warn hidden" type="button">
-            <span class="material-icons">stop</span>ปิดกล้อง
-          </button>
+          <button id="btnStartCam" class="btn primary"><span class="material-icons">photo_camera</span>เปิดกล้อง</button>
+          <button id="btnStopCam" class="btn warn hidden"><span class="material-icons">stop</span>ปิดกล้อง</button>
         </div>
-
         <div id="stage" class="previewBox">
           <video id="video" class="hidden" playsinline autoplay muted></video>
           <img id="preview" alt="ตัวอย่างภาพ" class="hidden" />
-          <canvas id="canvas" class="hidden"></canvas>
           <div id="placeholder" class="status">ยังไม่มีภาพ — เลือกอัปโหลดหรือเปิดกล้องเพื่อเริ่มต้น</div>
         </div>
         <div style="margin-top:8px" class="status" id="camStatus"></div>
       </section>
 
       <aside>
-        <div class="grid-2">
-          <div class="note" id="modelStatus">
-            สถานะโมเดล: <b>กำลังโหลด…</b> (โปรดวางโมเดลไว้ในโฟลเดอร์ <code>/model</code>)
-          </div>
-          <!-- ลบกล่อง HTTPS note ตามคำขอ -->
-        </div>
+        <div class="note" id="modelStatus">สถานะโมเดล: <b>กำลังโหลด…</b></div>
         <div style="height:12px"></div>
         <div class="result">
           <div class="status">ผลการทำนาย</div>
-          <h3 id="top1" style="margin:8px 0 4px">—</h3>
+          <h3 id="top1">—</h3>
           <div id="predList"></div>
         </div>
-
       </aside>
+    </div>
+
+    <!-- 🏆 โหมดแข่งขัน -->
+    <div class="card">
+      <h2>โหมดแข่งขัน</h2>
+      <div id="challenge" class="note">กด "เริ่มการแข่งขัน" เพื่อสุ่มโจทย์</div>
+      <div id="time" class="status"></div>
+      <div id="leaderboard" class="result"></div>
+      <button onclick="startRound()" class="btn primary">เริ่มการแข่งขัน</button>
     </div>
   </main>
 
   <footer class="foot">
-    <div class="note">💡 เคล็ดลับความแม่นยำ: จัดไฟให้สม่ำเสมอ ฉากหลังเรียบ และถ่ายหลายมุมต่อหนึ่งคลาส</div>
+    <div class="note">💡 เคล็ดลับความแม่นยำ: จัดไฟให้สม่ำเสมอ ฉากหลังเรียบ และถ่ายหลายมุม</div>
   </footer>
 
 <script>
   // =====================
-  // 1) โหลดโมเดล TM
+  // โหลดโมเดล
   // =====================
-  const MODEL_URL = "./model/"; 
+  const MODEL_URL = "./model/";
   let model, maxPredictions;
-
   const modelStatus = document.getElementById('modelStatus');
   const top1 = document.getElementById('top1');
   const predList = document.getElementById('predList');
 
   async function loadModel(){
     try{
-      model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+      model = await tmImage.load(MODEL_URL+"model.json", MODEL_URL+"metadata.json");
       maxPredictions = model.getTotalClasses();
-      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> — พบคลาสทั้งหมด: ' + maxPredictions;
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> พบคลาส: '+maxPredictions;
     }catch(err){
       console.error(err);
       modelStatus.classList.add('danger');
@@ -330,7 +144,7 @@
   loadModel();
 
   // =====================
-  // 🎵 Class → Sound Mapping
+  // Class → Sound Mapping
   // =====================
   const CLASS_SOUNDS = {
     "ควาย": "sounds/buffalo.mp3",
@@ -338,172 +152,166 @@
     "บ้าน": "sounds/house.mp3",
     "เพนกวิน": "sounds/penguin.mp3",
     "สุนัข": "sounds/dog.mp3",
-    "ไก่": "sounds/chiken.mp3",
+    "ไก่": "sounds/chicken.mp3",
     "ปลา": "sounds/fish.mp3",
     "หมู": "sounds/pig.mp3"
   };
-
-  let lastLabel = "";
-function playSoundForClass(label) {
-  if(label !== lastLabel){
-    const file = CLASS_SOUNDS[label];
+  let lastSoundTime=0;
+  function playSoundForClass(label){
+    const now=Date.now();
+    if(now-lastSoundTime<3000)return;
+    const file=CLASS_SOUNDS[label];
     if(file){
-      const audio = new Audio(file);
-      audio.volume = 0.9;
-      audio.play().catch(err => console.warn("เล่นเสียงไม่ได้:", err));
+      const audio=new Audio(file);
+      audio.volume=0.9;
+      audio.play().catch(err=>console.warn("เล่นเสียงไม่ได้:",err));
+      lastSoundTime=now;
     }
-    lastLabel = label;
   }
-}
 
   // =====================
-  // 2) DOM / ตัวแปรกล้อง
+  // DOM / กล้อง
   // =====================
-  const fileInput   = document.getElementById('fileInput');
-  const btnUpload   = document.getElementById('btnUpload');
-  const btnStartCam = document.getElementById('btnStartCam');
-  const btnStopCam  = document.getElementById('btnStopCam');
-  const btnSnap     = document.getElementById('btnSnap'); 
+  const fileInput=document.getElementById('fileInput');
+  const btnUpload=document.getElementById('btnUpload');
+  const btnStartCam=document.getElementById('btnStartCam');
+  const btnStopCam=document.getElementById('btnStopCam');
+  const video=document.getElementById('video');
+  const preview=document.getElementById('preview');
+  const placeholder=document.getElementById('placeholder');
+  const camStatus=document.getElementById('camStatus');
 
-  const video = document.getElementById('video');
-  const preview = document.getElementById('preview');
-  const placeholder = document.getElementById('placeholder');
-  const canvas = document.getElementById('canvas');
-  const camStatus = document.getElementById('camStatus');
-
-  // =====================
-  // 3) อัปโหลดรูป
-  // =====================
-  btnUpload.addEventListener('click', ()=> fileInput.click());
-  fileInput.addEventListener('change', async (e)=>{
-    const file = e.target.files && e.target.files[0];
-    if(!file) return;
+  btnUpload.addEventListener('click',()=>fileInput.click());
+  fileInput.addEventListener('change',async e=>{
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
     stopCamera();
-    const url = URL.createObjectURL(file);
-    preview.src = url;
+    const url=URL.createObjectURL(file);
+    preview.src=url;
     await showImage();
     await predict(preview);
   });
 
-  // =====================
-  // 4) กล้องแบบเรียลไทม์
-  // =====================
-  let stream, running = false;
-  const TARGET_FPS = 1;                // จำกัดความถี่การทำนาย (เฟรม/วินาที)
-  const FRAME_INTERVAL = 1000 / TARGET_FPS;
-  let lastTime = 0;
+  let stream,running=false;
+  const TARGET_FPS=2;
+  const FRAME_INTERVAL=1000/TARGET_FPS;
+  let lastTime=0;
 
   async function startCamera(){
     try{
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "environment" },
-        audio: false
+      stream=await navigator.mediaDevices.getUserMedia({
+        video:{width:{ideal:640},height:{ideal:480},facingMode:"environment"},
+        audio:false
       });
-      video.srcObject = stream;
-
-      await new Promise(res => video.onloadedmetadata = res);
+      video.srcObject=stream;
+      await new Promise(res=>video.onloadedmetadata=res);
       video.play();
-
       video.classList.remove('hidden');
       preview.classList.add('hidden');
       placeholder.classList.add('hidden');
-      btnSnap.classList.add('hidden');
       btnStopCam.classList.remove('hidden');
-      camStatus.textContent = 'โหมดเรียลไทม์: กล้องกำลังทำงานและกำลังทำนาย…';
-
-      running = true;
+      camStatus.textContent='โหมดเรียลไทม์: กล้องกำลังทำงาน…';
+      running=true;
       requestAnimationFrame(predictLoop);
-    }catch(err){
-      console.error(err);
-      camStatus.textContent = 'ไม่สามารถเปิดกล้องได้: ' + err.message;
-    }
+    }catch(err){camStatus.textContent='ไม่สามารถเปิดกล้องได้: '+err.message;}
   }
-
   function stopCamera(){
-    running = false;
-    if(stream){
-      stream.getTracks().forEach(t=> t.stop());
-      stream = null;
-    }
+    running=false;
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
     video.classList.add('hidden');
     btnStopCam.classList.add('hidden');
-    camStatus.textContent = '';
+    camStatus.textContent='';
   }
-
-  btnStartCam.addEventListener('click', startCamera);
-  btnStopCam.addEventListener('click', stopCamera);
+  btnStartCam.addEventListener('click',startCamera);
+  btnStopCam.addEventListener('click',stopCamera);
 
   async function predictLoop(now){
-    if(!running) return;
-    if(now - lastTime >= FRAME_INTERVAL){
-      lastTime = now;
-      if(model && video.readyState >= 2){
-        try{
-          const preds = await model.predict(video, false);
-          renderPredictions(preds);
-        }catch(e){ console.error(e); }
+    if(!running)return;
+    if(now-lastTime>=FRAME_INTERVAL){
+      lastTime=now;
+      if(model&&video.readyState>=2){
+        try{const preds=await model.predict(video,false);renderPredictions(preds);}catch(e){console.error(e);}
       }
     }
     requestAnimationFrame(predictLoop);
   }
 
-  // =====================
-  // 5) แสดงรูปอัปโหลด
-  // =====================
   async function showImage(){
     video.classList.add('hidden');
     preview.classList.remove('hidden');
     placeholder.classList.add('hidden');
-    await new Promise(r => (preview.onload = r));
+    await new Promise(r=>(preview.onload=r));
   }
-
-  // =====================
-  // 6) ทำนายครั้งเดียว
-  // =====================
   async function predict(imgEl){
-    if(!model){ top1.textContent = 'โมเดลยังไม่พร้อม'; return; }
-    const predictions = await model.predict(imgEl, false);
+    if(!model){top1.textContent='โมเดลยังไม่พร้อม';return;}
+    const predictions=await model.predict(imgEl,false);
     renderPredictions(predictions);
   }
 
-  // =====================
-  // 7) วาดผลลัพธ์
-  // =====================
   function renderPredictions(predictions){
-    predictions.sort((a,b)=> b.probability - a.probability);
+    predictions.sort((a,b)=>b.probability-a.probability);
+    const best=predictions[0];
+    const pct=(best.probability*100).toFixed(1);
+    top1.textContent=`สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
 
-    const best = predictions[0];
-    const pct = (best.probability*100).toFixed(1);
-    top1.textContent = `สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
-
-    if(predList.childElementCount !== predictions.length){
-      predList.innerHTML = '';
+    if(predList.childElementCount!==predictions.length){
+      predList.innerHTML='';
       for(let i=0;i<predictions.length;i++){
-        const row = document.createElement('div');
-        row.className = 'pred';
-        row.innerHTML = `
-          <div class="name"></div>
-          <div class="bar"><span></span></div>
-          <div class="val"></div>
-        `;
+        const row=document.createElement('div');
+        row.className='pred';
+        row.innerHTML=`<div class="name"></div><div class="bar"><span></span></div><div class="val"></div>`;
         predList.appendChild(row);
       }
     }
-    [...predList.children].forEach((row, i)=>{
-      const p = predictions[i];
-      const percent = (p.probability*100).toFixed(1);
-      row.querySelector('.name').textContent = p.className;
-      row.querySelector('.bar > span').style.width = percent + '%';
-      row.querySelector('.val').textContent = percent + '%';
+    [...predList.children].forEach((row,i)=>{
+      const p=predictions[i];
+      const percent=(p.probability*100).toFixed(1);
+      row.querySelector('.name').textContent=p.className;
+      row.querySelector('.bar > span').style.width=percent+'%';
+      row.querySelector('.val').textContent=percent+'%';
     });
 
-    // ✅ เล่นเสียงเมื่อมั่นใจ >= 70%
-    if(best.probability >= 0.6){
+    if(best.probability>=0.6){
       playSoundForClass(best.className);
+      checkPrediction(best.className);
     }
   }
+
+  // =====================
+  // 🎮 โหมดแข่งขัน
+  // =====================
+  let players=[{name:"Player 1",score:0}];
+  let currentChallenge="";
+  let roundTime=30;
+  let timer;
+
+  function startRound(){
+    const classes=Object.keys(CLASS_SOUNDS);
+    currentChallenge=classes[Math.floor(Math.random()*classes.length)];
+    document.getElementById("challenge").textContent="โจทย์: ปั้น "+currentChallenge;
+
+    roundTime=30;
+    clearInterval(timer);
+    timer=setInterval(()=>{
+      roundTime--;
+      document.getElementById("time").textContent="เหลือเวลา: "+roundTime+" วิ";
+      if(roundTime<=0){clearInterval(timer);nextRound();}
+    },1000);
+  }
+  function nextRound(){startRound();}
+  function checkPrediction(label){
+    if(label===currentChallenge){
+      players[0].score++;
+      updateLeaderboard();
+      clearInterval(timer);
+      nextRound();
+    }
+  }
+  function updateLeaderboard(){
+    let html="";
+    players.forEach(p=>{html+=`<div>${p.name}: ${p.score} คะแนน</div>`;});
+    document.getElementById("leaderboard").innerHTML=html;
+  }
 </script>
-
-
 </body>
 </html>
