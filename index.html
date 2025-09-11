@@ -336,7 +336,10 @@
     "ควาย": "sounds/buffalo.mp3",
     "รถ": "sounds/car.mp3",
     "บ้าน": "sounds/house.mp3",
-    "แพนกวิ้น": "sounds/penguin.mp3",
+    "เพนกวิน": "sounds/penguin.mp3",
+    "สุนัข": "sounds/dog.mp3",
+    "ไก่": "sounds/chiken.mp3",
+    "ปลา": "sounds/fish.mp3",
     "หมู": "sounds/pig.mp3"
   };
 
@@ -495,7 +498,7 @@
     });
 
     // ✅ เล่นเสียงเมื่อมั่นใจ >= 70%
-    if(best.probability >= 0.7){
+    if(best.probability >= 0.6){
       playSoundForClass(best.className);
     }
   }
