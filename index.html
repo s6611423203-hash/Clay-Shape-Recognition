@@ -301,7 +301,7 @@ let players = [
 ];
 let currentPlayer = 0;   
 let currentChallenge = "";
-let roundTime = 20;      // เวลาต่อรอบ
+let roundTime = 30;      // เวลาต่อรอบ
 let totalTime = 120;     // เวลาแข่งขันรวม (วินาที)
 let timer, gameTimer;
 
@@ -370,11 +370,23 @@ function updateLeaderboard(){
 }
 
 function endGame(){
-  let winner = players.reduce((a,b)=> a.score > b.score ? a : b);
-  document.getElementById("challenge").textContent = 
-    `🎉 จบเกม! ผู้ชนะคือ ${winner.name} ด้วย ${winner.score} คะแนน`;
+  let maxScore = Math.max(...players.map(p => p.score));
+  let winners = players.filter(p => p.score === maxScore);
+
+  if (winners.length > 1) {
+    // กรณีเสมอ
+    document.getElementById("challenge").textContent =
+      `🤝 จบเกม! เสมอกันที่ ${maxScore} คะแนน`;
+  } else {
+    // มีผู้ชนะคนเดียว
+    let winner = winners[0];
+    document.getElementById("challenge").textContent = 
+      `🎉 จบเกม! ผู้ชนะคือ ${winner.name} ด้วย ${winner.score} คะแนน`;
+  }
+
   document.getElementById("time").textContent = "หมดเวลา!";
 }
+
 
 </script>
 </body>
