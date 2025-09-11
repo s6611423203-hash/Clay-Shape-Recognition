@@ -343,18 +343,18 @@
     "หมู": "sounds/pig.mp3"
   };
 
-  let lastSoundTime = 0; // กันเสียงซ้อน
-  function playSoundForClass(label) {
-    const now = Date.now();
-    if(now - lastSoundTime < 3000) return; // จำกัดไม่เกินทุก 3 วินาที
+  let lastLabel = "";
+function playSoundForClass(label) {
+  if(label !== lastLabel){
     const file = CLASS_SOUNDS[label];
     if(file){
       const audio = new Audio(file);
-      audio.volume = 0.9; // ปรับความดัง
+      audio.volume = 0.9;
       audio.play().catch(err => console.warn("เล่นเสียงไม่ได้:", err));
-      lastSoundTime = now;
     }
+    lastLabel = label;
   }
+}
 
   // =====================
   // 2) DOM / ตัวแปรกล้อง
