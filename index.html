@@ -107,13 +107,23 @@
     </div>
 
     <!-- 🏆 โหมดแข่งขัน -->
-    <div class="card">
-      <h2>โหมดแข่งขัน</h2>
-      <div id="challenge" class="note">กด "เริ่มการแข่งขัน" เพื่อสุ่มโจทย์</div>
-      <div id="time" class="status"></div>
-      <div id="leaderboard" class="result"></div>
-      <button onclick="startRound()" class="btn primary">เริ่มการแข่งขัน</button>
-    </div>
+   <div class="result">
+  <div class="status">ผลการทำนาย</div>
+  <h3 id="top1" style="margin:8px 0 4px">—</h3>
+  <div id="predList"></div>
+</div>
+
+<!-- 🎮 ส่วนการแข่งขัน -->
+<div class="result" style="margin-top:16px">
+  <h3>โหมดแข่งขัน</h3>
+  <div id="challenge">—</div>
+  <div id="time">เหลือเวลา: — วิ</div>
+  <div id="leaderboard"></div>
+  <button id="btnStartGame" class="btn good" type="button">
+    <span class="material-icons">sports_esports</span> เริ่มแข่ง
+  </button>
+</div>
+
   </main>
 
   <footer class="foot">
@@ -277,41 +287,63 @@
     }
   }
 
-  // =====================
-  // 🎮 โหมดแข่งขัน
-  // =====================
-  let players=[{name:"Player 1",score:0}];
-  let currentChallenge="";
-  let roundTime=30;
-  let timer;
+ // =====================
+// 🎮 โหมดแข่งขัน 2 คน
+// =====================
+let players = [
+  {name: "Player 1", score: 0},
+  {name: "Player 2", score: 0}
+];
+let currentPlayer = 0;   // เริ่มที่ Player 1
+let currentChallenge = "";
+let roundTime = 20;
+let timer;
 
-  function startRound(){
-    const classes=Object.keys(CLASS_SOUNDS);
-    currentChallenge=classes[Math.floor(Math.random()*classes.length)];
-    document.getElementById("challenge").textContent="โจทย์: ปั้น "+currentChallenge;
+document.getElementById("btnStartGame").addEventListener("click", startRound);
 
-    roundTime=30;
-    clearInterval(timer);
-    timer=setInterval(()=>{
-      roundTime--;
-      document.getElementById("time").textContent="เหลือเวลา: "+roundTime+" วิ";
-      if(roundTime<=0){clearInterval(timer);nextRound();}
-    },1000);
-  }
-  function nextRound(){startRound();}
-  function checkPrediction(label){
-    if(label===currentChallenge){
-      players[0].score++;
-      updateLeaderboard();
+function startRound(){
+  const classes = Object.keys(CLASS_SOUNDS); // ใช้ชื่อ class จากโมเดล
+  currentChallenge = classes[Math.floor(Math.random()*classes.length)];
+  document.getElementById("challenge").textContent =
+    `${players[currentPlayer].name} โจทย์: ปั้น ${currentChallenge}`;
+
+  roundTime = 20;
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    roundTime--;
+    document.getElementById("time").textContent =
+      "เหลือเวลา: " + roundTime + " วิ (ตาของ " + players[currentPlayer].name + ")";
+    if(roundTime <= 0){
       clearInterval(timer);
-      nextRound();
+      nextTurn();
     }
+  },1000);
+
+  updateLeaderboard();
+}
+
+function nextTurn(){
+  currentPlayer = (currentPlayer+1) % players.length; // สลับผู้เล่น
+  startRound();
+}
+
+function checkPrediction(label){
+  if(label === currentChallenge){
+    players[currentPlayer].score++;
+    updateLeaderboard();
+    clearInterval(timer);
+    nextTurn();
   }
-  function updateLeaderboard(){
-    let html="";
-    players.forEach(p=>{html+=`<div>${p.name}: ${p.score} คะแนน</div>`;});
-    document.getElementById("leaderboard").innerHTML=html;
-  }
+}
+
+function updateLeaderboard(){
+  let html = "<h4>🏆 Leaderboard</h4>";
+  players.forEach(p=>{
+    html += `<div>${p.name}: ${p.score} คะแนน</div>`;
+  });
+  document.getElementById("leaderboard").innerHTML = html;
+}
+
 </script>
 </body>
 </html>
