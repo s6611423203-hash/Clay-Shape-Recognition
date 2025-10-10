@@ -121,6 +121,14 @@
     color: var(--err); 
     min-height: 1.5em; /* ป้องกันการกระโดดของ Layout */
   }
+
+  /* ✅ ปรับขนาดดาวให้ใหญ่ขึ้นและใช้สีที่ดึงดูด */
+  #scoreStars {
+    font-size: 2.2em; 
+    color: var(--warn); /* ใช้สีส้มเพื่อให้เหมือนดาว */
+    display: block; /* ให้ดาวอยู่บรรทัดใหม่ */
+    margin-top: 5px;
+  }
   </style>
 </head>
 <body>
@@ -172,7 +180,11 @@
       </div>
       
       <div id="roundInfo" style="font-weight: bold;">—</div> <div id="time">เหลือเวลา: — วิ</div>
-      <div id="scoreboard">ได้ดาวสะสม: <span id="currentScore" style="color: var(--warn);">0</span> ⭐</div> 
+      
+      <div id="scoreboard">ได้ดาวสะสม: 
+        <span id="currentScore">0</span>
+        <span id="scoreStars"></span> </div> 
+      
       <div id="feedback"></div> 
       
       <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -208,13 +220,14 @@
   const top1 = document.getElementById('top1');
   const predList = document.getElementById('predList');
   const btnStartGame = document.getElementById("btnStartGame");
-  const btnStopGameRound = document.getElementById("btnStopGameRound"); // DOM ใหม่สำหรับปุ่มหยุดพัก
+  const btnStopGameRound = document.getElementById("btnStopGameRound"); 
   const challengeText = document.getElementById("challenge");
   const challengeImage = document.getElementById("challengeImage");
   const timeDisplay = document.getElementById("time");
   const scoreDisplay = document.getElementById("currentScore");
+  const scoreStarsDisplay = document.getElementById("scoreStars"); // DOM ใหม่สำหรับชุดดาว
   const feedbackDisplay = document.getElementById("feedback");
-  const roundInfoDisplay = document.getElementById("roundInfo"); // DOM ใหม่สำหรับข้อมูลรอบ
+  const roundInfoDisplay = document.getElementById("roundInfo");
 
 
   // =====================
@@ -223,6 +236,12 @@
   const MODEL_URL = "./model/";
   let model, maxPredictions;
   let score = 0;
+  
+  // ฟังก์ชันอัปเดตดาว
+  function updateScoreDisplay() {
+    scoreDisplay.textContent = currentScore; // ยังแสดงตัวเลขเล็ก ๆ
+    scoreStarsDisplay.textContent = '⭐'.repeat(currentScore); // แสดงชุดดาว
+  }
   
   // ฟังก์ชันปลดล็อคปุ่ม
   function enableInteraction() {
@@ -297,7 +316,7 @@
   let lastTime=0;
 
   async function startCamera(){
-    if (!model) { // ป้องกันการเรียกใช้กล้องถ้าโมเดลยังไม่พร้อม
+    if (!model) { 
         camStatus.textContent = "❌ โมเดลยังไม่พร้อมทำงาน";
         return;
     }
@@ -376,7 +395,6 @@
 
     if(best.probability>=0.6){
       playSoundForClass(best.className);
-      // ตรวจสอบผลลัพธ์เกมเฉพาะเมื่อโมเดลทำนายได้ด้วยความมั่นใจสูง
       checkPrediction(best.className); 
     }
   }
@@ -403,7 +421,7 @@
     }
     currentScore = 0;
     currentRound = 0; // เริ่มรอบที่ 0
-    scoreDisplay.textContent = currentScore;
+    updateScoreDisplay(); // อัปเดตการแสดงผลดาวเริ่มต้น
     btnStartGame.disabled = true;
     btnStopGameRound.classList.remove('hidden'); // แสดงปุ่มหยุดเกม
     startNewRound();
@@ -491,13 +509,12 @@
     // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
     if(label === currentChallenge && roundTime > 0){
       currentScore++;
-      scoreDisplay.textContent = currentScore;
+      updateScoreDisplay(); // อัปเดตการแสดงผลดาว
       
       clearInterval(timerInterval);
       feedbackDisplay.textContent = `✅ ได้ดาวแล้ว! ปั้น ${currentChallenge} ถูกต้อง!`;
       feedbackDisplay.style.color = 'var(--ok)'; 
       
-      // ให้ปุ่มเริ่มเกมปรากฏขึ้นอีกครั้งเพื่อให้ผู้ใช้กดเริ่มรอบใหม่ได้ หรือให้เริ่มอัตโนมัติ
       setTimeout(startNewRound, 3000); // เริ่มรอบถัดไป
     } else if (roundTime > 0 && label !== currentChallenge) {
       feedbackDisplay.textContent = `🤔 AI ทายว่า ${label}... ลองปั้น ${currentChallenge} ให้ชัดกว่านี้หน่อยสิ!`;
