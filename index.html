@@ -1,213 +1,10 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI ทายงานปั้นดินน้ำมันสำหรับเด็ก</title>
-  <meta name="description" content="เกมสแกนงานปั้นดินน้ำมันด้วยกล้องหรืออัปโหลดรูป สำหรับเด็กอนุบาล" />
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="icon" type="image/png" href="CSR.png">
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap" rel="stylesheet">
-
-  <style>
-  :root {
-    /* ปรับสีให้สดใสและดูเป็นมิตรกับเด็กมากขึ้น */
-    --bg-gradient: linear-gradient(135deg, #FFC0CB, #ADD8E6, #90EE90); /* ชมพูอ่อน, ฟ้าอ่อน, เขียวอ่อน */
-    --fg: #333333; 
-    --muted: #6A6A6A;
-    --card: rgba(255,255,255,0.95); 
-    --accent: #FF69B4; /* ชมพูสด */
-    --ok: #3CB371; /* เขียวสด */
-    --warn: #FFA500; /* ส้ม */
-    --err: #FF4500; /* แดงส้ม */
-    --ring: #DDDDDD;
-  }
-
-  body {
-    margin: 0;
-    font-family: 'Kanit', ui-sans-serif, system-ui; /* ใช้ฟอนต์ที่อ่านง่าย */
-    background: var(--bg-gradient);
-    background-attachment: fixed;
-    color: var(--fg);
-    font-size: 18px; /* เพิ่มขนาดฟอนต์พื้นฐาน */
-  }
-
-  header { max-width: 960px; margin: 24px auto 0; padding: 0 16px; }
-  .title.center { display: flex; flex-direction: column; align-items: center; text-align: center; }
-  .logo { width: 120px; height: 120px; border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-  .logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  h1 { 
-    font-size: clamp(30px, 6vw, 45px); 
-    margin: 0; 
-    color: var(--accent); 
-    font-weight: 900;
-  }
-  p.sub { 
-    color: var(--fg); 
-    margin: 8px 0 16px; 
-    font-size: 1.2em;
-    font-weight: bold;
-  }
-
-  main { max-width: 960px; margin: 20px auto 56px; padding: 0 16px; }
-  .card { 
-    background: var(--card); 
-    border: 1px solid var(--ring); 
-    border-radius: 30px; 
-    padding: 30px; 
-    box-shadow: 0 12px 30px rgba(0,0,0,.15); 
-    backdrop-filter: blur(5px); 
-    margin-bottom: 25px; 
-  }
-  .row { display: grid; gap: 20px; }
-  @media (min-width: 900px) { .row { grid-template-columns: 1.2fr .8fr; } }
-
-  .controls { display: flex; flex-wrap: wrap; gap: 15px; margin: 10px 0 15px; justify-content: center; }
-  .btn { 
-    appearance: none; border: none; background: #fff; color: var(--fg); 
-    padding: 15px 24px; 
-    border-radius: 20px; 
-    cursor: pointer; transition: .2s; 
-    box-shadow: 0 5px 15px rgba(0,0,0,.1);
-    font-size: 1.1em; 
-    font-weight: bold;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .btn:hover { transform: translateY(-3px) scale(1.03); }
-  .btn.primary { background: var(--accent); color: #fff; }
-  .btn.good { background: var(--ok); color: #fff; }
-  .btn.warn { background: var(--warn); color: #fff; }
-  .hidden { display: none!important; }
-  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-
-  .previewBox { 
-    background: rgba(255,255,255,0.9); 
-    border: 4px dashed var(--accent); 
-    border-radius: 20px; 
-    min-height: 400px; 
-    display: grid; 
-    place-items: center; 
-    overflow: hidden; 
-  }
-  video, img { max-width: 100%; height: auto; display: block; border-radius: 16px; }
-
-  .status { font-size: 1.1em; color: var(--muted); font-weight: bold; }
-  .result { 
-    background: rgba(255,255,255,0.9); 
-    border: 1px solid var(--ring); 
-    border-radius: 20px; 
-    padding: 20px; 
-    box-shadow: 0 3px 10px rgba(0,0,0,.05); 
-  }
-  #top1 {
-    font-size: 1.5em; 
-    color: var(--accent);
-    font-weight: 900;
-    margin-top: 10px;
-  }
-  .pred { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; font-size: 1.1em; } 
-  .bar { height: 15px; background: #f3f4f6; border-radius: 999px; overflow: hidden; flex: 1; margin: 0 10px; }
-  .bar > span { display: block; height: 100%; background: var(--accent); width: 0%; }
-  
-  .foot { max-width: 960px; margin: 10px auto 32px; padding: 0 16px; color: var(--muted); font-size: 14px; text-align: center; }
-  .note { padding: 15px; border-left: 6px solid var(--accent); background: #fdf2f8; border-radius: 10px; font-weight: bold; }
-  .danger { border-left-color: var(--err); background: #fef2f2; }
-  .ok { border-left-color: var(--ok); background: #ecfdf5; }
-  #feedback { 
-    font-size: 1.2em; 
-    font-weight: bold; 
-    color: var(--err); 
-    min-height: 1.5em; /* ป้องกันการกระโดดของ Layout */
-  }
-
-  /* ✅ ปรับขนาดดาวให้ใหญ่ขึ้นและใช้สีที่ดึงดูด */
-  #scoreStars {
-    font-size: 2.2em; 
-    color: var(--warn); /* ใช้สีส้มเพื่อให้เหมือนดาว */
-    display: block; /* ให้ดาวอยู่บรรทัดใหม่ */
-    margin-top: 5px;
-  }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="title center">
-      <div class="logo"><img src="CSR.png" alt="CSR Logo"></div>
-      <div>
-        <h1>✨ AI ทายงานปั้นดินน้ำมัน! ✨</h1>
-        <p class="sub">ถ่ายรูป 📸 หรือ อัปโหลดภาพ 🖼️ ให้ AI ทายว่าปั้นรูปอะไร!</p>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <div class="card row">
-      <section>
-        <div class="controls">
-          <button id="btnUpload" class="btn" disabled><span class="material-icons">file_upload</span>รูปของฉัน</button>
-          <input id="fileInput" type="file" accept="image/*" class="hidden" />
-          <button id="btnStartCam" class="btn primary" disabled><span class="material-icons">photo_camera</span>เปิดกล้องถ่ายเลย!</button>
-          <button id="btnStopCam" class="btn warn hidden"><span class="material-icons">stop</span>ปิดกล้อง</button>
-        </div>
-        <div id="stage" class="previewBox">
-          <video id="video" class="hidden" playsinline autoplay muted></video>
-          <img id="preview" alt="ตัวอย่างภาพ" class="hidden" />
-          <div id="placeholder" class="status">☝️ เริ่มต้นด้วยการถ่ายรูปงานปั้นกันเลย!</div>
-        </div>
-        <div style="margin-top:8px" class="status" id="camStatus"></div>
-      </section>
-
-      <aside>
-        <div class="note" id="modelStatus">สถานะโมเดล: <b>กำลังโหลด…</b></div>
-        <div style="height:12px"></div>
-        <div class="result">
-          <div class="status">AI ทายว่า…</div>
-          <h3 id="top1">—</h3>
-          <div id="predList"></div>
-        </div>
-      </aside>
-    </div>
-
-    <div class="result" style="margin-top:25px">
-      <h3>🏆 โหมดเกมปั้น! 🚀</h3>
-      
-      <div id="challenge"></div> 
-      
-      <div id="challengeImageContainer" style="margin: 10px 0; text-align: center;">
-        <img id="challengeImage" src="" alt="รูปโจทย์" class="hidden" style="max-width: 150px; height: auto; border-radius: 10px; border: 3px solid var(--accent);"/>
-      </div>
-      
-      <div id="roundInfo" style="font-weight: bold;">—</div> <div id="time">เหลือเวลา: — วิ</div>
-      
-      <div id="scoreboard">ได้ดาวสะสม: 
-        <span id="currentScore">0</span>
-        <span id="scoreStars"></span> </div> 
-      
-      <div id="feedback"></div> 
-      
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button id="btnStartGame" class="btn good" type="button" disabled>
-          <span class="material-icons">sports_esports</span> เริ่มเกม!
-        </button>
-        <button id="btnStopGameRound" class="btn warn hidden" type="button">
-          <span class="material-icons">pause</span> หยุดพัก
-        </button>
-      </div>
-    </div>
-
-
-  </main>
-
-  <footer class="foot">
-    <div class="note">💡 **เคล็ดลับ** ถ่ายรูปชัด ๆ มีแสงสว่างดี ๆ ฉากหลังเรียบ ๆ จะทายเก่งขึ้นนะ!</div>
-  </footer>
+// ... (โค้ด HTML/CSS/DOM Elements เดิม) ...
 
 <script>
   // =====================
   // DOM Elements
   // =====================
+  // ... (ตัวแปร DOM ทั้งหมด) ...
   const fileInput = document.getElementById('fileInput');
   const btnUpload = document.getElementById('btnUpload');
   const btnStartCam = document.getElementById('btnStartCam');
@@ -228,7 +25,6 @@
   const scoreStarsDisplay = document.getElementById("scoreStars"); // DOM ใหม่สำหรับชุดดาว
   const feedbackDisplay = document.getElementById("feedback");
   const roundInfoDisplay = document.getElementById("roundInfo");
-
 
   // =====================
   // โหลดโมเดล
@@ -256,14 +52,11 @@
       maxPredictions = model.getTotalClasses();
       modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> พบคลาส: '+maxPredictions;
       
-      // ปลดล็อคเมื่อโหลดสำเร็จ
       enableInteraction(); 
     }catch(err){
       console.error(err);
       modelStatus.classList.add('danger');
       modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b> <br>กรุณาตรวจสอบไฟล์ในโฟลเดอร์ **model/** และลองโหลดหน้าใหม่';
-      
-      // หากโหลดไม่สำเร็จ ปุ่มยังคงถูกล็อค
     }
   }
   loadModel();
@@ -297,7 +90,7 @@
   }
 
   // =====================
-  // DOM / กล้อง & อัปโหลด
+  // DOM / กล้อง & อัปโหลด (ฟังก์ชันเดิมทั้งหมด)
   // =====================
   btnUpload.addEventListener('click',()=>fileInput.click());
   fileInput.addEventListener('change',async e=>{
@@ -316,7 +109,7 @@
   let lastTime=0;
 
   async function startCamera(){
-    if (!model) { 
+    if (!model) {
         camStatus.textContent = "❌ โมเดลยังไม่พร้อมทำงาน";
         return;
     }
@@ -400,12 +193,28 @@
   }
 
   // =====================
+  // 🎮 ฟังก์ชันสุ่มโจทย์ที่ไม่ซ้ำ
+  // =====================
+  let shuffledChallenges = []; // Array สำหรับเก็บลำดับโจทย์ที่ไม่ซ้ำ
+
+  /**
+   * ฟังก์ชันสลับลำดับ (Shuffle) ใน Array แบบ Fisher-Yates
+   */
+  function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+  }
+
+
+  // =====================
   // 🎮 โหมดเกมปั้นคนเดียว (อัปเดต: 5 รอบ, 3 นาที, ดาว)
   // =====================
-  let currentScore = 0;      // ดาวสะสม
-  let currentRound = 0;      // รอบปัจจุบัน
-  const MAX_ROUNDS = 5;      // สูงสุด 5 รอบ
-  const ROUND_TIME_SECONDS = 180; // 3 นาที = 180 วินาที
+  let currentScore = 0;
+  let currentRound = 0;
+  const MAX_ROUNDS = 5;
+  const ROUND_TIME_SECONDS = 180;
   let currentChallenge = "";
   let roundTime = ROUND_TIME_SECONDS;
   let timerInterval;
@@ -420,10 +229,15 @@
       return;
     }
     currentScore = 0;
-    currentRound = 0; // เริ่มรอบที่ 0
-    updateScoreDisplay(); // อัปเดตการแสดงผลดาวเริ่มต้น
+    currentRound = 0;
+    
+    // ⭐️ ขั้นตอนใหม่: สลับลำดับโจทย์ทั้งหมด
+    shuffledChallenges = Object.keys(CLASS_DATA); 
+    shuffleArray(shuffledChallenges); 
+
+    updateScoreDisplay(); 
     btnStartGame.disabled = true;
-    btnStopGameRound.classList.remove('hidden'); // แสดงปุ่มหยุดเกม
+    btnStopGameRound.classList.remove('hidden'); 
     startNewRound();
   }
 
@@ -433,7 +247,6 @@
     feedbackDisplay.textContent = "⏸️ หยุดพักแล้วนะ! ถ้าพร้อมแล้วกด 'เริ่มเกม!' เพื่อเล่นต่อ";
     feedbackDisplay.style.color = 'var(--warn)';
     
-    // เปลี่ยนปุ่มหยุดพักเป็นปุ่มเริ่มเกม
     btnStopGameRound.classList.add('hidden');
     btnStartGame.disabled = false;
   }
@@ -449,24 +262,30 @@
 
     challengeImage.classList.add('hidden');
     btnStopGameRound.classList.add('hidden');
-    btnStartGame.disabled = false; // ให้เริ่มเกมใหม่ได้
+    btnStartGame.disabled = false;
   }
 
 
   // ฟังก์ชันเริ่มรอบใหม่
   function startNewRound(){
     currentRound++;
+    
+    // ตรวจสอบเงื่อนไขจบเกม
     if (currentRound > MAX_ROUNDS) {
       endGame();
       return;
     }
 
+    // ⭐️ ขั้นตอนใหม่: ดึงโจทย์จากลำดับที่สลับไว้แล้ว
+    if (shuffledChallenges.length === 0) {
+        endGame(); 
+        return;
+    }
+    currentChallenge = shuffledChallenges.shift(); // ดึงโจทย์ตัวแรกออกมา
+    
     // รีเซ็ตสถานะ
     roundInfoDisplay.textContent = `⭐ รอบที่ ${currentRound} จาก ${MAX_ROUNDS} รอบ`;
     
-    // 1. สุ่มโจทย์
-    const classes = Object.keys(CLASS_DATA);
-    currentChallenge = classes[Math.floor(Math.random()*classes.length)];
     const challengeImgPath = CLASS_DATA[currentChallenge].image;
 
     // 2. แสดงโจทย์
