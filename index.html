@@ -80,6 +80,7 @@
   .btn.good { background: var(--ok); color: #fff; }
   .btn.warn { background: var(--warn); color: #fff; }
   .hidden { display: none!important; }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
   .previewBox { 
     background: rgba(255,255,255,0.9); 
@@ -137,9 +138,9 @@
     <div class="card row">
       <section>
         <div class="controls">
-          <button id="btnUpload" class="btn"><span class="material-icons">file_upload</span>รูปของฉัน</button>
+          <button id="btnUpload" class="btn" disabled><span class="material-icons">file_upload</span>รูปของฉัน</button>
           <input id="fileInput" type="file" accept="image/*" class="hidden" />
-          <button id="btnStartCam" class="btn primary"><span class="material-icons">photo_camera</span>เปิดกล้องถ่ายเลย!</button>
+          <button id="btnStartCam" class="btn primary" disabled><span class="material-icons">photo_camera</span>เปิดกล้องถ่ายเลย!</button>
           <button id="btnStopCam" class="btn warn hidden"><span class="material-icons">stop</span>ปิดกล้อง</button>
         </div>
         <div id="stage" class="previewBox">
@@ -172,7 +173,9 @@
       
       <div id="time">เหลือเวลา: — วิ</div>
       <div id="scoreboard">คะแนน: <span id="currentScore">0</span></div>
-      <div id="feedback"></div> <button id="btnStartGame" class="btn good" type="button">
+      <div id="feedback"></div> 
+      
+      <button id="btnStartGame" class="btn good" type="button" disabled>
         <span class="material-icons">sports_esports</span> เริ่มเกม!
       </button>
     </div>
@@ -186,33 +189,63 @@
 
 <script>
   // =====================
+  // DOM Elements
+  // =====================
+  const fileInput = document.getElementById('fileInput');
+  const btnUpload = document.getElementById('btnUpload');
+  const btnStartCam = document.getElementById('btnStartCam');
+  const btnStopCam = document.getElementById('btnStopCam');
+  const video = document.getElementById('video');
+  const preview = document.getElementById('preview');
+  const placeholder = document.getElementById('placeholder');
+  const camStatus = document.getElementById('camStatus');
+  const modelStatus = document.getElementById('modelStatus');
+  const top1 = document.getElementById('top1');
+  const predList = document.getElementById('predList');
+  const btnStartGame = document.getElementById("btnStartGame");
+  const challengeText = document.getElementById("challenge");
+  const challengeImage = document.getElementById("challengeImage");
+  const timeDisplay = document.getElementById("time");
+  const scoreDisplay = document.getElementById("currentScore");
+  const feedbackDisplay = document.getElementById("feedback");
+
+
+  // =====================
   // โหลดโมเดล
   // =====================
   const MODEL_URL = "./model/";
   let model, maxPredictions;
   let score = 0;
-  const modelStatus = document.getElementById('modelStatus');
-  const top1 = document.getElementById('top1');
-  const predList = document.getElementById('predList');
+  
+  // ฟังก์ชันปลดล็อคปุ่ม
+  function enableInteraction() {
+      btnUpload.disabled = false;
+      btnStartCam.disabled = false;
+      btnStartGame.disabled = false;
+  }
 
   async function loadModel(){
     try{
       model = await tmImage.load(MODEL_URL+"model.json", MODEL_URL+"metadata.json");
       maxPredictions = model.getTotalClasses();
       modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> พบคลาส: '+maxPredictions;
+      
+      // ปลดล็อคเมื่อโหลดสำเร็จ
+      enableInteraction(); 
     }catch(err){
       console.error(err);
       modelStatus.classList.add('danger');
-      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b>';
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b> <br>กรุณาตรวจสอบไฟล์ในโฟลเดอร์ **model/** และลองโหลดหน้าใหม่';
+      
+      // หากโหลดไม่สำเร็จ ปุ่มยังคงถูกล็อค
     }
   }
   loadModel();
 
   // =====================
-  // Class → Sound/Image Mapping (ต้องเตรียมไฟล์รูปภาพไว้ในโฟลเดอร์ challenge_images/)
+  // Class → Sound/Image Mapping (อัปเดตเป็นชื่อไฟล์ที่เหมาะสม)
   // =====================
   const CLASS_DATA = {
-    // **ตัวอย่าง:** คุณต้องมีไฟล์ชื่อ buffalo.png ในโฟลเดอร์ challenge_images/
     "ควาย": { sound: "sounds/buffalo.mp3", image: "challenge_images/buffalo.png" },
     "รถ": { sound: "sounds/car.mp3", image: "challenge_images/car.png" },
     "บ้าน": { sound: "sounds/house.mp3", image: "challenge_images/house.png" },
@@ -238,17 +271,8 @@
   }
 
   // =====================
-  // DOM / กล้อง
+  // DOM / กล้อง & อัปโหลด
   // =====================
-  const fileInput=document.getElementById('fileInput');
-  const btnUpload=document.getElementById('btnUpload');
-  const btnStartCam=document.getElementById('btnStartCam');
-  const btnStopCam=document.getElementById('btnStopCam');
-  const video=document.getElementById('video');
-  const preview=document.getElementById('preview');
-  const placeholder=document.getElementById('placeholder');
-  const camStatus=document.getElementById('camStatus');
-
   btnUpload.addEventListener('click',()=>fileInput.click());
   fileInput.addEventListener('change',async e=>{
     const file=e.target.files&&e.target.files[0];
@@ -266,6 +290,10 @@
   let lastTime=0;
 
   async function startCamera(){
+    if (!model) { // ป้องกันการเรียกใช้กล้องถ้าโมเดลยังไม่พร้อม
+        camStatus.textContent = "❌ โมเดลยังไม่พร้อมทำงาน";
+        return;
+    }
     try{
       stream=await navigator.mediaDevices.getUserMedia({
         video:{width:{ideal:640},height:{ideal:480},facingMode:"environment"},
@@ -320,7 +348,6 @@
     predictions.sort((a,b)=>b.probability-a.probability);
     const best=predictions[0];
     const pct=(best.probability*100).toFixed(1);
-    // ปรับข้อความสำหรับเด็ก
     top1.textContent=`AI ทายว่า: 💖 ${best.className} 💖 (มั่นใจ ${pct}%)`;
 
     if(predList.childElementCount!==predictions.length){
@@ -342,7 +369,6 @@
 
     if(best.probability>=0.6){
       playSoundForClass(best.className);
-      // ✅ เรียกฟังก์ชันตรวจสอบเกม
       checkPrediction(best.className); 
     }
   }
@@ -350,21 +376,13 @@
   // =====================
   // 🎮 โหมดเกมปั้นคนเดียว
   // =====================
-  let currentScore = 0;      // คะแนนปัจจุบัน
-  let currentChallenge = ""; // ชื่อโจทย์ที่ต้องปั้น (เช่น "ควาย")
-  let roundTime = 30;      // เวลาต่อรอบ (วินาที)
+  let currentScore = 0;
+  let currentChallenge = "";
+  let roundTime = 30;
   let timerInterval;
-
-  const btnStartGame = document.getElementById("btnStartGame");
-  const challengeText = document.getElementById("challenge");
-  const challengeImage = document.getElementById("challengeImage");
-  const timeDisplay = document.getElementById("time");
-  const scoreDisplay = document.getElementById("currentScore");
-  const feedbackDisplay = document.getElementById("feedback");
 
   btnStartGame.addEventListener("click", startGame);
 
-  // ฟังก์ชันเริ่มเกม (เริ่มเซ็ตคะแนนและรอบแรก)
   function startGame(){
     if(!model){
       feedbackDisplay.textContent = "❌ โมเดล AI ยังโหลดไม่เสร็จ กรุณารอสักครู่!";
@@ -376,7 +394,6 @@
     startNewRound();
   }
 
-  // ฟังก์ชันเริ่มรอบใหม่
   function startNewRound(){
     // 1. สุ่มโจทย์
     const classes = Object.keys(CLASS_DATA);
@@ -388,6 +405,7 @@
     challengeImage.src = challengeImgPath;
     challengeImage.classList.remove('hidden');
     feedbackDisplay.textContent = 'ปั้นเลย! สู้ๆ!';
+    feedbackDisplay.style.color = var(--fg); // รีเซ็ตสี
 
     // 3. เริ่มจับเวลา
     roundTime = 30;
@@ -398,35 +416,34 @@
       
       // สีแดงเมื่อใกล้หมดเวลา
       if (roundTime <= 5) {
-          timeDisplay.style.color = var(--err);
+          timeDisplay.style.color = 'var(--err)'; // ใช้ string literal สำหรับ CSS variable ใน JS
       } else {
-          timeDisplay.style.color = var(--fg);
+          timeDisplay.style.color = 'var(--fg)';
       }
 
       if(roundTime <= 0){
         clearInterval(timerInterval);
         feedbackDisplay.textContent = `❌ หมดเวลา! ปั้น ${currentChallenge} ไม่ทัน...`;
+        feedbackDisplay.style.color = 'var(--err)';
         setTimeout(startNewRound, 3000); // รอ 3 วิแล้วเริ่มรอบใหม่
       }
     },1000);
   }
 
-  // ฟังก์ชันตรวจสอบผลลัพธ์ (ถูกเรียกจาก renderPredictions)
   function checkPrediction(label){
     // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
     if(label === currentChallenge && roundTime > 0){
       currentScore++;
       scoreDisplay.textContent = currentScore;
       
-      // หยุดจับเวลาและให้ Feedback
       clearInterval(timerInterval);
       feedbackDisplay.textContent = `✅ เยี่ยมมาก! ปั้น ${currentChallenge} ถูกแล้ว! ได้ 1 คะแนน!`;
+      feedbackDisplay.style.color = 'var(--ok)';
       
-      // เริ่มรอบใหม่หลังผ่านไป 3 วินาที
       setTimeout(startNewRound, 3000);
     } else if (roundTime > 0 && label !== currentChallenge) {
-      // ให้ Feedback เล็กน้อยว่าทายผิด (ถ้าความมั่นใจเกิน 60%)
       feedbackDisplay.textContent = `🤔 AI ทายว่า ${label}... ลองปั้น ${currentChallenge} ให้ชัดกว่านี้หน่อยสิ!`;
+      feedbackDisplay.style.color = 'var(--warn)';
     }
   }
 </script>
