@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="icon" type="image/png" href="CSR.png">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700;900&display=swap" rel="stylesheet">
+
   <style>
   :root {
     /* ปรับสีให้สดใสและดูเป็นมิตรกับเด็กมากขึ้น */
@@ -35,18 +36,18 @@
 
   header { max-width: 960px; margin: 24px auto 0; padding: 0 16px; }
   .title.center { display: flex; flex-direction: column; align-items: center; text-align: center; }
-  .logo { width: 120px; height: 120px; border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; } /* โลโก้ใหญ่ขึ้น */
+  .logo { width: 120px; height: 120px; border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
   .logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
   h1 { 
-    font-size: clamp(30px, 6vw, 45px); /* หัวข้อใหญ่สะใจ */
+    font-size: clamp(30px, 6vw, 45px); 
     margin: 0; 
-    color: var(--accent); /* สีชมพูสด */
+    color: var(--accent); 
     font-weight: 900;
   }
   p.sub { 
     color: var(--fg); 
     margin: 8px 0 16px; 
-    font-size: 1.2em; /* เพิ่มขนาดข้อความย่อย */
+    font-size: 1.2em;
     font-weight: bold;
   }
 
@@ -54,7 +55,7 @@
   .card { 
     background: var(--card); 
     border: 1px solid var(--ring); 
-    border-radius: 30px; /* ขอบโค้งมนมากขึ้น */
+    border-radius: 30px; 
     padding: 30px; 
     box-shadow: 0 12px 30px rgba(0,0,0,.15); 
     backdrop-filter: blur(5px); 
@@ -66,11 +67,11 @@
   .controls { display: flex; flex-wrap: wrap; gap: 15px; margin: 10px 0 15px; justify-content: center; }
   .btn { 
     appearance: none; border: none; background: #fff; color: var(--fg); 
-    padding: 15px 24px; /* ปุ่มใหญ่ขึ้น */
-    border-radius: 20px; /* ขอบโค้งมน */
+    padding: 15px 24px; 
+    border-radius: 20px; 
     cursor: pointer; transition: .2s; 
     box-shadow: 0 5px 15px rgba(0,0,0,.1);
-    font-size: 1.1em; /* ขนาดตัวอักษรในปุ่ม */
+    font-size: 1.1em; 
     font-weight: bold;
     display: flex; align-items: center; gap: 6px;
   }
@@ -82,9 +83,9 @@
 
   .previewBox { 
     background: rgba(255,255,255,0.9); 
-    border: 4px dashed var(--accent); /* ขอบชัดเจน */
+    border: 4px dashed var(--accent); 
     border-radius: 20px; 
-    min-height: 400px; /* เพิ่มความสูงพื้นที่แสดงภาพ */
+    min-height: 400px; 
     display: grid; 
     place-items: center; 
     overflow: hidden; 
@@ -100,19 +101,25 @@
     box-shadow: 0 3px 10px rgba(0,0,0,.05); 
   }
   #top1 {
-    font-size: 1.5em; /* ขนาดใหญ่สำหรับผลลัพธ์หลัก */
+    font-size: 1.5em; 
     color: var(--accent);
     font-weight: 900;
     margin-top: 10px;
   }
   .pred { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; font-size: 1.1em; } 
-  .bar { height: 15px; background: #f3f4f6; border-radius: 999px; overflow: hidden; flex: 1; margin: 0 10px; } /* แถบผลลัพธ์ใหญ่ขึ้น */
+  .bar { height: 15px; background: #f3f4f6; border-radius: 999px; overflow: hidden; flex: 1; margin: 0 10px; }
   .bar > span { display: block; height: 100%; background: var(--accent); width: 0%; }
   
   .foot { max-width: 960px; margin: 10px auto 32px; padding: 0 16px; color: var(--muted); font-size: 14px; text-align: center; }
-  .note { padding: 15px; border-left: 6px solid var(--accent); background: #fdf2f8; border-radius: 10px; font-weight: bold; } /* Note ใหญ่ขึ้น */
+  .note { padding: 15px; border-left: 6px solid var(--accent); background: #fdf2f8; border-radius: 10px; font-weight: bold; }
   .danger { border-left-color: var(--err); background: #fef2f2; }
   .ok { border-left-color: var(--ok); background: #ecfdf5; }
+  #feedback { 
+    font-size: 1.2em; 
+    font-weight: bold; 
+    color: var(--err); 
+    min-height: 1.5em; /* ป้องกันการกระโดดของ Layout */
+  }
   </style>
 </head>
 <body>
@@ -155,14 +162,20 @@
     </div>
 
     <div class="result" style="margin-top:25px">
-  <h3>🏆 โหมดเกมปั้นแข่ง! 🚀</h3>
-  <div id="challenge">—</div>
-  <div id="time">เหลือเวลา: — วิ</div>
-  <div id="scoreboard">คะแนนรวม: 0</div> <div id="leaderboard"></div>
-  <button id="btnStartGame" class="btn good" type="button">
-    <span class="material-icons">sports_esports</span> เริ่มเกม!
-  </button>
-</div>
+      <h3>🏆 โหมดเกมปั้นคนเดียว! 🚀</h3>
+      
+      <div id="challenge"></div> 
+      
+      <div id="challengeImageContainer" style="margin: 10px 0; text-align: center;">
+        <img id="challengeImage" src="" alt="รูปโจทย์" class="hidden" style="max-width: 150px; height: auto; border-radius: 10px; border: 3px solid var(--accent);"/>
+      </div>
+      
+      <div id="time">เหลือเวลา: — วิ</div>
+      <div id="scoreboard">คะแนน: <span id="currentScore">0</span></div>
+      <div id="feedback"></div> <button id="btnStartGame" class="btn good" type="button">
+        <span class="material-icons">sports_esports</span> เริ่มเกม!
+      </button>
+    </div>
 
 
   </main>
@@ -172,14 +185,250 @@
   </footer>
 
 <script>
-  // ... (JavaScript ส่วนเดิมทั้งหมด) ...
-  // *ข้อสังเกต: คุณอาจต้องปรับปรุงข้อความใน JavaScript functions (เช่น top1.textContent) ให้เป็นภาษาเด็กด้วย หากต้องการให้การสื่อสารสมบูรณ์ยิ่งขึ้น*
+  // =====================
+  // โหลดโมเดล
+  // =====================
+  const MODEL_URL = "./model/";
+  let model, maxPredictions;
+  let score = 0;
+  const modelStatus = document.getElementById('modelStatus');
+  const top1 = document.getElementById('top1');
+  const predList = document.getElementById('predList');
 
-  // ตัวอย่างการปรับปรุงข้อความใน JS (นำไปแทรกใน renderPredictions):
-  // top1.textContent=`สิ่งที่ปั้นคือ: ${best.className} (ความมั่นใจ ${pct}%)`;
-  // เปลี่ยนเป็น:
-  // top1.textContent=`AI ทายว่า: 💖 ${best.className} 💖 (มั่นใจ ${pct}%)`;
+  async function loadModel(){
+    try{
+      model = await tmImage.load(MODEL_URL+"model.json", MODEL_URL+"metadata.json");
+      maxPredictions = model.getTotalClasses();
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> พบคลาส: '+maxPredictions;
+    }catch(err){
+      console.error(err);
+      modelStatus.classList.add('danger');
+      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--err)">โหลดไม่สำเร็จ</b>';
+    }
+  }
+  loadModel();
 
+  // =====================
+  // Class → Sound/Image Mapping (ต้องเตรียมไฟล์รูปภาพไว้ในโฟลเดอร์ challenge_images/)
+  // =====================
+  const CLASS_DATA = {
+    // **ตัวอย่าง:** คุณต้องมีไฟล์ชื่อ buffalo.png ในโฟลเดอร์ challenge_images/
+    "ควาย": { sound: "sounds/buffalo.mp3", image: "challenge_images/buffalo.png" },
+    "รถ": { sound: "sounds/car.mp3", image: "challenge_images/car.png" },
+    "บ้าน": { sound: "sounds/house.mp3", image: "challenge_images/house.png" },
+    "เพนกวิน": { sound: "sounds/penguin.mp3", image: "challenge_images/penguin.png" },
+    "สุนัข": { sound: "sounds/dog.mp3", image: "challenge_images/dog.png" },
+    "ไก่": { sound: "sounds/chicken.mp3", image: "challenge_images/chicken.png" },
+    "ปลา": { sound: "sounds/fish.mp3", image: "challenge_images/fish.png" },
+    "หมู": { sound: "sounds/pig.mp3", image: "challenge_images/pig.png" }
+  };
+  let lastSoundTime=0;
+  function playSoundForClass(label){
+    const now=Date.now();
+    if(now-lastSoundTime<3000)return;
+    const data = CLASS_DATA[label];
+    const file = data ? data.sound : null;
+    
+    if(file){
+      const audio=new Audio(file);
+      audio.volume=0.9;
+      audio.play().catch(err=>console.warn("เล่นเสียงไม่ได้:",err));
+      lastSoundTime=now;
+    }
+  }
+
+  // =====================
+  // DOM / กล้อง
+  // =====================
+  const fileInput=document.getElementById('fileInput');
+  const btnUpload=document.getElementById('btnUpload');
+  const btnStartCam=document.getElementById('btnStartCam');
+  const btnStopCam=document.getElementById('btnStopCam');
+  const video=document.getElementById('video');
+  const preview=document.getElementById('preview');
+  const placeholder=document.getElementById('placeholder');
+  const camStatus=document.getElementById('camStatus');
+
+  btnUpload.addEventListener('click',()=>fileInput.click());
+  fileInput.addEventListener('change',async e=>{
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    stopCamera();
+    const url=URL.createObjectURL(file);
+    preview.src=url;
+    await showImage();
+    await predict(preview);
+  });
+
+  let stream,running=false;
+  const TARGET_FPS=2;
+  const FRAME_INTERVAL=1000/TARGET_FPS;
+  let lastTime=0;
+
+  async function startCamera(){
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({
+        video:{width:{ideal:640},height:{ideal:480},facingMode:"environment"},
+        audio:false
+      });
+      video.srcObject=stream;
+      await new Promise(res=>video.onloadedmetadata=res);
+      video.play();
+      video.classList.remove('hidden');
+      preview.classList.add('hidden');
+      placeholder.classList.add('hidden');
+      btnStopCam.classList.remove('hidden');
+      camStatus.textContent='โหมดเรียลไทม์: กล้องกำลังทำงาน…';
+      running=true;
+      requestAnimationFrame(predictLoop);
+    }catch(err){camStatus.textContent='ไม่สามารถเปิดกล้องได้: '+err.message;}
+  }
+  function stopCamera(){
+    running=false;
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    video.classList.add('hidden');
+    btnStopCam.classList.add('hidden');
+    camStatus.textContent='';
+  }
+  btnStartCam.addEventListener('click',startCamera);
+  btnStopCam.addEventListener('click',stopCamera);
+
+  async function predictLoop(now){
+    if(!running)return;
+    if(now-lastTime>=FRAME_INTERVAL){
+      lastTime=now;
+      if(model&&video.readyState>=2){
+        try{const preds=await model.predict(video,false);renderPredictions(preds);}catch(e){console.error(e);}
+      }
+    }
+    requestAnimationFrame(predictLoop);
+  }
+
+  async function showImage(){
+    video.classList.add('hidden');
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    await new Promise(r=>(preview.onload=r));
+  }
+  async function predict(imgEl){
+    if(!model){top1.textContent='โมเดลยังไม่พร้อม';return;}
+    const predictions=await model.predict(imgEl,false);
+    renderPredictions(predictions);
+  }
+
+  function renderPredictions(predictions){
+    predictions.sort((a,b)=>b.probability-a.probability);
+    const best=predictions[0];
+    const pct=(best.probability*100).toFixed(1);
+    // ปรับข้อความสำหรับเด็ก
+    top1.textContent=`AI ทายว่า: 💖 ${best.className} 💖 (มั่นใจ ${pct}%)`;
+
+    if(predList.childElementCount!==predictions.length){
+      predList.innerHTML='';
+      for(let i=0;i<predictions.length;i++){
+        const row=document.createElement('div');
+        row.className='pred';
+        row.innerHTML=`<div class="name"></div><div class="bar"><span></span></div><div class="val"></div>`;
+        predList.appendChild(row);
+      }
+    }
+    [...predList.children].forEach((row,i)=>{
+      const p=predictions[i];
+      const percent=(p.probability*100).toFixed(1);
+      row.querySelector('.name').textContent=p.className;
+      row.querySelector('.bar > span').style.width=percent+'%';
+      row.querySelector('.val').textContent=percent+'%';
+    });
+
+    if(best.probability>=0.6){
+      playSoundForClass(best.className);
+      // ✅ เรียกฟังก์ชันตรวจสอบเกม
+      checkPrediction(best.className); 
+    }
+  }
+
+  // =====================
+  // 🎮 โหมดเกมปั้นคนเดียว
+  // =====================
+  let currentScore = 0;      // คะแนนปัจจุบัน
+  let currentChallenge = ""; // ชื่อโจทย์ที่ต้องปั้น (เช่น "ควาย")
+  let roundTime = 30;      // เวลาต่อรอบ (วินาที)
+  let timerInterval;
+
+  const btnStartGame = document.getElementById("btnStartGame");
+  const challengeText = document.getElementById("challenge");
+  const challengeImage = document.getElementById("challengeImage");
+  const timeDisplay = document.getElementById("time");
+  const scoreDisplay = document.getElementById("currentScore");
+  const feedbackDisplay = document.getElementById("feedback");
+
+  btnStartGame.addEventListener("click", startGame);
+
+  // ฟังก์ชันเริ่มเกม (เริ่มเซ็ตคะแนนและรอบแรก)
+  function startGame(){
+    if(!model){
+      feedbackDisplay.textContent = "❌ โมเดล AI ยังโหลดไม่เสร็จ กรุณารอสักครู่!";
+      return;
+    }
+    currentScore = 0;
+    scoreDisplay.textContent = currentScore;
+    btnStartGame.disabled = true;
+    startNewRound();
+  }
+
+  // ฟังก์ชันเริ่มรอบใหม่
+  function startNewRound(){
+    // 1. สุ่มโจทย์
+    const classes = Object.keys(CLASS_DATA);
+    currentChallenge = classes[Math.floor(Math.random()*classes.length)];
+    const challengeImgPath = CLASS_DATA[currentChallenge].image;
+
+    // 2. แสดงโจทย์
+    challengeText.innerHTML = `<h3>ปั้นสิ่งนี้ให้ AI ทายถูก: 🎨 ${currentChallenge}</h3>`;
+    challengeImage.src = challengeImgPath;
+    challengeImage.classList.remove('hidden');
+    feedbackDisplay.textContent = 'ปั้นเลย! สู้ๆ!';
+
+    // 3. เริ่มจับเวลา
+    roundTime = 30;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+      roundTime--;
+      timeDisplay.textContent = "เหลือเวลา: " + roundTime + " วิ";
+      
+      // สีแดงเมื่อใกล้หมดเวลา
+      if (roundTime <= 5) {
+          timeDisplay.style.color = var(--err);
+      } else {
+          timeDisplay.style.color = var(--fg);
+      }
+
+      if(roundTime <= 0){
+        clearInterval(timerInterval);
+        feedbackDisplay.textContent = `❌ หมดเวลา! ปั้น ${currentChallenge} ไม่ทัน...`;
+        setTimeout(startNewRound, 3000); // รอ 3 วิแล้วเริ่มรอบใหม่
+      }
+    },1000);
+  }
+
+  // ฟังก์ชันตรวจสอบผลลัพธ์ (ถูกเรียกจาก renderPredictions)
+  function checkPrediction(label){
+    // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
+    if(label === currentChallenge && roundTime > 0){
+      currentScore++;
+      scoreDisplay.textContent = currentScore;
+      
+      // หยุดจับเวลาและให้ Feedback
+      clearInterval(timerInterval);
+      feedbackDisplay.textContent = `✅ เยี่ยมมาก! ปั้น ${currentChallenge} ถูกแล้ว! ได้ 1 คะแนน!`;
+      
+      // เริ่มรอบใหม่หลังผ่านไป 3 วินาที
+      setTimeout(startNewRound, 3000);
+    } else if (roundTime > 0 && label !== currentChallenge) {
+      // ให้ Feedback เล็กน้อยว่าทายผิด (ถ้าความมั่นใจเกิน 60%)
+      feedbackDisplay.textContent = `🤔 AI ทายว่า ${label}... ลองปั้น ${currentChallenge} ให้ชัดกว่านี้หน่อยสิ!`;
+    }
+  }
 </script>
 </body>
 </html>
