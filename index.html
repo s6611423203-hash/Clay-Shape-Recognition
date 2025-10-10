@@ -171,13 +171,18 @@
         <img id="challengeImage" src="" alt="รูปโจทย์" class="hidden" style="max-width: 150px; height: auto; border-radius: 10px; border: 3px solid var(--accent);"/>
       </div>
       
-      <div id="time">เหลือเวลา: — วิ</div>
-      <div id="scoreboard">คะแนน: <span id="currentScore">0</span></div>
+      <div id="roundInfo" style="font-weight: bold;">—</div> <div id="time">เหลือเวลา: — วิ</div>
+      <div id="scoreboard">ได้ดาวสะสม: <span id="currentScore" style="color: var(--warn);">0</span> ⭐</div> 
       <div id="feedback"></div> 
       
-      <button id="btnStartGame" class="btn good" type="button" disabled>
-        <span class="material-icons">sports_esports</span> เริ่มเกม!
-      </button>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button id="btnStartGame" class="btn good" type="button" disabled>
+          <span class="material-icons">sports_esports</span> เริ่มเกม!
+        </button>
+        <button id="btnStopGameRound" class="btn warn hidden" type="button">
+          <span class="material-icons">pause</span> หยุดพัก
+        </button>
+      </div>
     </div>
 
 
@@ -203,11 +208,13 @@
   const top1 = document.getElementById('top1');
   const predList = document.getElementById('predList');
   const btnStartGame = document.getElementById("btnStartGame");
+  const btnStopGameRound = document.getElementById("btnStopGameRound"); // DOM ใหม่สำหรับปุ่มหยุดพัก
   const challengeText = document.getElementById("challenge");
   const challengeImage = document.getElementById("challengeImage");
   const timeDisplay = document.getElementById("time");
   const scoreDisplay = document.getElementById("currentScore");
   const feedbackDisplay = document.getElementById("feedback");
+  const roundInfoDisplay = document.getElementById("roundInfo"); // DOM ใหม่สำหรับข้อมูลรอบ
 
 
   // =====================
@@ -369,32 +376,76 @@
 
     if(best.probability>=0.6){
       playSoundForClass(best.className);
+      // ตรวจสอบผลลัพธ์เกมเฉพาะเมื่อโมเดลทำนายได้ด้วยความมั่นใจสูง
       checkPrediction(best.className); 
     }
   }
 
   // =====================
-  // 🎮 โหมดเกมปั้นคนเดียว
+  // 🎮 โหมดเกมปั้นคนเดียว (อัปเดต: 5 รอบ, 3 นาที, ดาว)
   // =====================
-  let currentScore = 0;
+  let currentScore = 0;      // ดาวสะสม
+  let currentRound = 0;      // รอบปัจจุบัน
+  const MAX_ROUNDS = 5;      // สูงสุด 5 รอบ
+  const ROUND_TIME_SECONDS = 180; // 3 นาที = 180 วินาที
   let currentChallenge = "";
-  let roundTime = 30;
+  let roundTime = ROUND_TIME_SECONDS;
   let timerInterval;
 
   btnStartGame.addEventListener("click", startGame);
+  btnStopGameRound.addEventListener("click", stopGame); 
 
+  // ฟังก์ชันเริ่มเกม (เริ่มเซ็ตคะแนนและรอบแรก)
   function startGame(){
     if(!model){
       feedbackDisplay.textContent = "❌ โมเดล AI ยังโหลดไม่เสร็จ กรุณารอสักครู่!";
       return;
     }
     currentScore = 0;
+    currentRound = 0; // เริ่มรอบที่ 0
     scoreDisplay.textContent = currentScore;
     btnStartGame.disabled = true;
+    btnStopGameRound.classList.remove('hidden'); // แสดงปุ่มหยุดเกม
     startNewRound();
   }
 
+  // ฟังก์ชันหยุดเกม (ชั่วคราว/พัก)
+  function stopGame(){
+    clearInterval(timerInterval);
+    feedbackDisplay.textContent = "⏸️ หยุดพักแล้วนะ! ถ้าพร้อมแล้วกด 'เริ่มเกม!' เพื่อเล่นต่อ";
+    feedbackDisplay.style.color = 'var(--warn)';
+    
+    // เปลี่ยนปุ่มหยุดพักเป็นปุ่มเริ่มเกม
+    btnStopGameRound.classList.add('hidden');
+    btnStartGame.disabled = false;
+  }
+
+  // ฟังก์ชันจบเกม
+  function endGame(){
+    clearInterval(timerInterval);
+    challengeText.innerHTML = `<h3>เกมจบแล้ว! เก่งมาก! 🎉</h3>`;
+    roundInfoDisplay.textContent = `ได้ดาวสะสมทั้งหมด: ${currentScore} ⭐`;
+    timeDisplay.textContent = ``;
+    feedbackDisplay.textContent = `ปั้นครบ ${MAX_ROUNDS} รอบแล้ว! ได้ ${currentScore} ดาว!`;
+    feedbackDisplay.style.color = 'var(--accent)';
+
+    challengeImage.classList.add('hidden');
+    btnStopGameRound.classList.add('hidden');
+    btnStartGame.disabled = false; // ให้เริ่มเกมใหม่ได้
+  }
+
+
+  // ฟังก์ชันเริ่มรอบใหม่
   function startNewRound(){
+    currentRound++;
+    if (currentRound > MAX_ROUNDS) {
+      endGame();
+      return;
+    }
+
+    // รีเซ็ตสถานะ
+    roundInfoDisplay.textContent = `⭐ รอบที่ ${currentRound} จาก ${MAX_ROUNDS} รอบ`;
+    
     // 1. สุ่มโจทย์
     const classes = Object.keys(CLASS_DATA);
     currentChallenge = classes[Math.floor(Math.random()*classes.length)];
@@ -405,17 +456,22 @@
     challengeImage.src = challengeImgPath;
     challengeImage.classList.remove('hidden');
     feedbackDisplay.textContent = 'ปั้นเลย! สู้ๆ!';
-    feedbackDisplay.style.color = 'var(--fg)'; // รีเซ็ตสีให้ถูกต้อง
+    feedbackDisplay.style.color = 'var(--fg)';
 
     // 3. เริ่มจับเวลา
-    roundTime = 30;
+    roundTime = ROUND_TIME_SECONDS;
     clearInterval(timerInterval);
     timerInterval = setInterval(()=>{
       roundTime--;
-      timeDisplay.textContent = "เหลือเวลา: " + roundTime + " วิ";
       
-      // ✅ แก้ไข Syntax Error: ใช้ String literal 'var(--xxx)'
-      if (roundTime <= 5) {
+      const minutes = Math.floor(roundTime / 60);
+      const seconds = roundTime % 60;
+      const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      timeDisplay.textContent = "เหลือเวลา: " + timeStr;
+      
+      // สีแดงเมื่อใกล้หมดเวลา (20 วินาทีสุดท้าย)
+      if (roundTime <= 20) {
           timeDisplay.style.color = 'var(--err)'; 
       } else {
           timeDisplay.style.color = 'var(--fg)';
@@ -423,13 +479,14 @@
 
       if(roundTime <= 0){
         clearInterval(timerInterval);
-        feedbackDisplay.textContent = `❌ หมดเวลา! ปั้น ${currentChallenge} ไม่ทัน...`;
+        feedbackDisplay.textContent = `❌ หมดเวลา! ปั้น ${currentChallenge} ไม่ทัน!`;
         feedbackDisplay.style.color = 'var(--err)';
-        setTimeout(startNewRound, 3000); 
+        setTimeout(startNewRound, 3000); // รอ 3 วิแล้วเริ่มรอบใหม่
       }
     },1000);
   }
 
+  // ฟังก์ชันตรวจสอบผลลัพธ์
   function checkPrediction(label){
     // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
     if(label === currentChallenge && roundTime > 0){
@@ -437,13 +494,14 @@
       scoreDisplay.textContent = currentScore;
       
       clearInterval(timerInterval);
-      feedbackDisplay.textContent = `✅ เยี่ยมมาก! ปั้น ${currentChallenge} ถูกแล้ว! ได้ 1 คะแนน!`;
-      feedbackDisplay.style.color = 'var(--ok)'; // ✅ แก้ไข Syntax Error
+      feedbackDisplay.textContent = `✅ ได้ดาวแล้ว! ปั้น ${currentChallenge} ถูกต้อง!`;
+      feedbackDisplay.style.color = 'var(--ok)'; 
       
-      setTimeout(startNewRound, 3000);
+      // ให้ปุ่มเริ่มเกมปรากฏขึ้นอีกครั้งเพื่อให้ผู้ใช้กดเริ่มรอบใหม่ได้ หรือให้เริ่มอัตโนมัติ
+      setTimeout(startNewRound, 3000); // เริ่มรอบถัดไป
     } else if (roundTime > 0 && label !== currentChallenge) {
       feedbackDisplay.textContent = `🤔 AI ทายว่า ${label}... ลองปั้น ${currentChallenge} ให้ชัดกว่านี้หน่อยสิ!`;
-      feedbackDisplay.style.color = 'var(--warn)'; // ✅ แก้ไข Syntax Error
+      feedbackDisplay.style.color = 'var(--warn)';
     }
   }
 </script>
