@@ -531,7 +531,7 @@
   // =====================
   let currentScore = 0;
   let currentRound = 0;
-  const MAX_ROUNDS = 6;
+  const MAX_ROUNDS = 5;
   const ROUND_TIME_SECONDS = 180;
   let currentChallenge = "";
   let roundTime = ROUND_TIME_SECONDS;
@@ -615,7 +615,7 @@
     endGamePopup.classList.add('show');
     
     // เริ่มเอฟเฟกต์ดาวร่วง (จำนวนดาวที่ร่วงตามคะแนนที่ได้)
-    startStarFallingEffect(currentScore * 6); 
+    startStarFallingEffect(currentScore * 8); 
 
     // เคลียร์หน้าจอเกมหลัก
     challengeText.innerHTML = `<h3>เกมจบแล้ว! เริ่มเกมใหม่ได้เลย!</h3>`;
