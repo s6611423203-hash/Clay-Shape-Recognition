@@ -1,1 +1,1 @@
-{"tfjsVersion":"1.7.4","tmVersion":"2.4.10","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2025-09-11T15:52:24.271Z","userMetadata":{},"modelName":"term","labels":["ควาย","รถ","เพนกวิน","หมู","บ้าน","สุนัข","ไก่","ปลา"],"imageSize":224}
+{"tfjsVersion":"1.7.4","tmVersion":"2.4.10","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2025-10-16T20:28:11.624Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["ดาว","หัวใจ","ดอกไม้","กล้วย","โดนัท","ฟุตบอล"],"imageSize":224}
