@@ -369,7 +369,10 @@
     try{
       model = await tmImage.load(MODEL_URL+"model.json", MODEL_URL+"metadata.json");
       maxPredictions = model.getTotalClasses();
-      modelStatus.innerHTML = 'สถานะโมเดล: <b style="color:var(--ok)">พร้อมใช้งาน</b> พบคลาส: '+maxPredictions;
+     
+    const metadata = model.getMetadata();
+    const classLabels = metadata.labels; // ดึงชื่อคลาสทั้งหมดออกมาเป็น Array
+      modelStatus.innerHTML = `✨ ลองปั้นสิ่งเหล่านี้สิ: <b style="color:var(--ok)">${classLabels.join(', ')}</b>`;
       
       enableInteraction(); 
     }catch(err){
