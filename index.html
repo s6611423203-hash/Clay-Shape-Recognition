@@ -610,11 +610,12 @@
     popupTitle.textContent = `เกมจบแล้ว! เก่งมาก!`;
     popupScore.textContent = `คะแนนรวม: ${currentScore} ดาว`;
     popupStars.textContent = '⭐'.repeat(currentScore);
-    
+
+    endGamePopup.classList.remove('hidden');
     endGamePopup.classList.add('show');
     
     // เริ่มเอฟเฟกต์ดาวร่วง (จำนวนดาวที่ร่วงตามคะแนนที่ได้)
-    startStarFallingEffect(currentScore * 5); 
+    startStarFallingEffect(currentScore * 6); 
 
     // เคลียร์หน้าจอเกมหลัก
     challengeText.innerHTML = `<h3>เกมจบแล้ว! เริ่มเกมใหม่ได้เลย!</h3>`;
