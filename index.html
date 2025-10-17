@@ -304,7 +304,10 @@
           <h2 id="popupTitle">เกมจบแล้ว! เก่งมาก!</h2>
           <div id="popupScore" class="final-score"></div>
           <div id="popupStars" class="star-display"></div>
-          <button id="btnClosePopup" class="btn primary">เริ่มเกมใหม่!</button>
+          <div style="display: flex; justify-content: center; gap: 15px;">
+              <button id="btnBackToHome" class="btn">กลับหน้าแรก</button>
+               <button id="btnClosePopup" class="btn primary">เล่นอีกครั้ง!</button>
+        </div>
       </div>
   </div>
 
@@ -340,8 +343,12 @@
   const popupStars = document.getElementById('popupStars');
   const btnClosePopup = document.getElementById('btnClosePopup');
   const starFallContainer = document.querySelector('.star-fall-container');
+  const btnBackToHome = document.getElementById('btnBackToHome');
   
   // Event Listener สำหรับ Popup
+  btnBackToHome.addEventListener('click', () => {
+    window.location.reload(); // คำสั่งให้รีเฟรชหน้าเว็บทั้งหมด
+});
   btnClosePopup.addEventListener('click', closePopup);
 
 
