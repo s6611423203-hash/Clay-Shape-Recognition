@@ -556,6 +556,7 @@
   let currentChallenge = "";
   let roundTime = ROUND_TIME_SECONDS;
   let timerInterval;
+  let isRoundOver = false;
 
   btnStartGame.addEventListener("click", startGame);
   btnStopGameRound.addEventListener("click", stopGame); 
@@ -650,7 +651,8 @@
 
   // ฟังก์ชันเริ่มรอบใหม่
   function startNewRound(){
-    currentRound++;
+     isRoundOver = false; //  <--- เพิ่มบรรทัดนี้ (ปลดล็อคสำหรับรอบใหม่)
+     currentRound++;
     
     // ตรวจสอบเงื่อนไขจบเกม
     if (currentRound > MAX_ROUNDS) {
@@ -705,12 +707,17 @@
     },1000);
   }
 
-  // ฟังก์ชันตรวจสอบผลลัพธ์
   function checkPrediction(label){
-    // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
-    if(label === currentChallenge && roundTime > 0){
-      currentScore++;
-      updateScoreDisplay(); // อัปเดตการแสดงผลดาว
+     // 1. ตรวจสอบก่อนว่ารอบนี้จบไปหรือยัง
+     if (isRoundOver) return; // ถ้าจบแล้ว (กำลังรอ) ไม่ต้องทำอะไรเลย
+ 
+     // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
+     if(label === currentChallenge && roundTime > 0){
+       
+       isRoundOver = true; // 2. สั่งล็อคทันที! ป้องกันการบวกคะแนนซ้ำ
+       
+       currentScore++;
+       updateScoreDisplay(); // อัปเดตการแสดงผลดาว
       
       clearInterval(timerInterval);
       feedbackDisplay.textContent = `✅ ได้ดาวแล้ว! ปั้น ${currentChallenge} ถูกต้อง!`;
