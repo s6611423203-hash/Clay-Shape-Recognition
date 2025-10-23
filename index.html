@@ -626,6 +626,7 @@
   // ฟังก์ชันจบเกม (อัปเดตสำหรับ Popup)
  function endGame(){
      console.log("ฟังก์ชัน endGame ถูกเรียกแล้ว!");
+     console.log("ตรวจสอบตัวแปร endGamePopup:", endGamePopup);
      running = false; //  <--- ✨ เพิ่มบรรทัดนี้! (หยุดการทายผลโดยสมบูรณ์)
      clearInterval(timerInterval);
     
