@@ -83,15 +83,25 @@
   .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
   .previewBox { 
-    background: rgba(255,255,255,0.9); 
-    border: 4px dashed var(--accent); 
-    border-radius: 20px; 
-    min-height: 400px; 
-    display: grid; 
-    place-items: center; 
-    overflow: hidden; 
-  }
-  video, img { max-width: 100%; height: auto; display: block; border-radius: 16px; }
+  background: rgba(255,255,255,0.9); 
+  border: 4px dashed var(--accent); 
+  border-radius: 20px; 
+  /* min-height: 400px; */ /* <-- ลบ หรือ คอมเมนต์บรรทัดนี้ */
+  height: auto;       /* <-- เพิ่มบรรทัดนี้ */
+  aspect-ratio: 1 / 1; /* <-- เพิ่มบรรทัดนี้ (บังคับให้เป็นสี่เหลี่ยมจัตุรัส) */
+  display: grid; 
+  place-items: center; 
+  overflow: hidden; 
+}
+  video, img { 
+  /* max-width: 100%; */ /* <-- ลบ หรือ คอมเมนต์บรรทัดนี้ */
+  /* height: auto; */    /* <-- ลบ หรือ คอมเมนต์บรรทัดนี้ */
+  width: 100%;       /* <-- เพิ่มบรรทัดนี้ (ให้กว้างเต็มกรอบ) */
+  height: 100%;      /* <-- เพิ่มบรรทัดนี้ (ให้สูงเต็มกรอบ) */
+  object-fit: cover; /* <-- เพิ่มบรรทัดนี้ (สำคัญมาก! ใช้ซูมวิดีโอให้เต็มและตัดขอบทิ้ง) */
+  display: block; 
+  border-radius: 16px; 
+}
 
   .status { font-size: 1.1em; color: var(--muted); font-weight: bold; }
   .result { 
