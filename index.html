@@ -707,28 +707,28 @@
     },1000);
   }
 
-  function checkPrediction(label){
-     // 1. ตรวจสอบก่อนว่ารอบนี้จบไปหรือยัง
-     if (isRoundOver) return; // ถ้าจบแล้ว (กำลังรอ) ไม่ต้องทำอะไรเลย
- 
-     // ตรวจสอบเฉพาะถ้าเกมกำลังเล่นอยู่ และยังไม่หมดเวลา
-     if(label === currentChallenge && roundTime > 0){
-       
-       isRoundOver = true; // 2. สั่งล็อคทันที! ป้องกันการบวกคะแนนซ้ำ
-       
-       currentScore++;
-       updateScoreDisplay(); // อัปเดตการแสดงผลดาว
-      
-      clearInterval(timerInterval);
-      feedbackDisplay.textContent = `✅ ได้ดาวแล้ว! ปั้น ${currentChallenge} ถูกต้อง!`;
-      feedbackDisplay.style.color = 'var(--ok)'; 
-      
-      setTimeout(startNewRound, 3000); // เริ่มรอบถัดไป
-    } else if (roundTime > 0 && label !== currentChallenge) {
-      feedbackDisplay.textContent = `🤔 AI ทายว่า ${label}... ลองปั้น ${currentChallenge} ให้ชัดกว่านี้หน่อยสิ!`;
-      feedbackDisplay.style.color = 'var(--warn)';
-    }
-  }
+function checkPrediction(label){
+     if (isRoundOver) return;
+
+     if(label === currentChallenge && roundTime > 0){
+         isRoundOver = true;
+         
+         // ✨ เพิ่มเงื่อนไขตรงนี้ ✨
+         if (currentScore < 5) { 
+             currentScore++;       // บวกคะแนนต่อเมื่อยังไม่ถึง 5
+             updateScoreDisplay(); // อัปเดตดาวต่อเมื่อมีการบวกคะแนน
+         }
+         
+         clearInterval(timerInterval);
+         feedbackDisplay.textContent = `✅ ได้ดาวแล้ว! ปั้น ${currentChallenge} ถูกต้อง!`;
+         feedbackDisplay.style.color = 'var(--ok)'; 
+         
+         setTimeout(startNewRound, 3000);
+     } else if (roundTime > 0 && label !== currentChallenge) {
+         feedbackDisplay.textContent = `🤔 AI ทายว่า ${label}... ลองปั้น ${currentChallenge} ให้ชัดกว่านี้หน่อยสิ!`;
+         feedbackDisplay.style.color = 'var(--warn)';
+     }
+ }
 </script>
 </body>
 </html>
