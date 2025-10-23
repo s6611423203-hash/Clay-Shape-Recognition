@@ -625,6 +625,7 @@
   // ฟังก์ชันจบเกม (อัปเดตสำหรับ Popup)
   function endGame(){
     console.log("ฟังก์ชัน endGame ถูกเรียกแล้ว!"); // <-- เพิ่มบรรทัดนี้
+    stopCamera(); //  <--- ✨ เพิ่มบรรทัดนี้!
     clearInterval(timerInterval);
     
     // ⭐️ แสดงผลบน Popup แทนการแสดงผลบนหน้าหลัก
